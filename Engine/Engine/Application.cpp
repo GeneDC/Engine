@@ -7,14 +7,19 @@
 // std
 #include <iostream>
 
-bool Application::Create(const char * title, int width, int height)
+#include <aie/Input.h>
+
+bool Application::Create(const char * title, int a_width, int a_height)
 {
+	width = a_width;
+	height = a_height;
+
 	// Initialize glfw and if it failed, stop the program
 	if (glfwInit() == false)
 		return false;
 
 	// Create a glfw window with our settings
-	window = glfwCreateWindow(width, height, title, nullptr, nullptr);
+	window = glfwCreateWindow(a_width, a_height, title, nullptr, nullptr);
 	// Check if the window was created correctly
 	if (window == false)
 	{
@@ -32,42 +37,72 @@ bool Application::Create(const char * title, int width, int height)
 		return false;
 	}
 
+	// Enable Face culling
+	glEnable(GL_CULL_FACE);
+
 	auto major = ogl_GetMajorVersion();
 	auto minor = ogl_GetMinorVersion();
 	std::cout << "GL: " << major << "." << minor << std::endl;
+
+	aie::Input::create();
 
 	// Success
 	return true;
 }
 
-bool Application::Run(const char * title, int width, int height)
+bool Application::Run(const char * title, int a_width, int a_height)
 {
 	// Setup the application and return false if it failed
-	if (Create(title, width, height) == false)
+	if (Create(title, a_width, a_height) == false)
 		return false;
 
+	// Startup and check if it worked
 	if (Startup() == false)
 		return false;
+
+	// Variables for timing
+	double prevTime = glfwGetTime();
+	double currTime = 0;
+	deltaTime = 0;
+	unsigned int frames = 0;
+	double fpsInterval = 0;
 
 	// Run until the window should be closed (e.g. pressing the x button)
 	while (glfwWindowShouldClose(window) == false && shouldExit == false)
 	{
-		glClearColor(0, 0.15f, 0.15f, 1.0f);
-		glEnable(GL_DEPTH);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		
+		// Get the current time
+		currTime = glfwGetTime();
+		// Set deltaTime to the change in time
+		deltaTime = currTime - prevTime;
+		// Set the previous time
+		prevTime = currTime;
 
-		// Update
-		// Close the app if esc is pressed
-		if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-		{
-			shouldExit = true;
-		}
-		// Draw
-
-		glfwSwapBuffers(window);
+		// clear input
+		aie::Input::getInstance()->clearStatus();
 		glfwPollEvents();
 
+		// Set the clear colour
+		glClearColor(0, 0.15f, 0.15f, 1.0f);
+		glEnable(GL_DEPTH);
+		// Clear the screen
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		
+		// Update fps every second
+		frames++;
+		fpsInterval += deltaTime;
+		if (fpsInterval >= 1.0f) 
+		{
+			fps = frames;
+			frames = 0;
+			fpsInterval -= 1.0f;
+		}
+
+		// Call Update
+		Update((float)deltaTime);
+		// Call Draw
+		Draw();
+
+		glfwSwapBuffers(window);
 	}
 
 	// Clean up the application
@@ -78,6 +113,8 @@ bool Application::Run(const char * title, int width, int height)
 
 void Application::Destroy()
 {
+	aie::Input::destroy();
+
 	// Destroy the window we created
 	glfwDestroyWindow(window);
 	// Clean up glfw

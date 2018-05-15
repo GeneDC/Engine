@@ -5,7 +5,8 @@ struct GLFWwindow;
 class Application
 {
 public:
-	Application() : window(nullptr), shouldExit(false) {};
+	Application() : window(nullptr), shouldExit(false), width(100), height(100)
+		, clearColour{0, 0.15f, 0.15f, 10.f} {};
 	virtual ~Application() = default;
 
 	// Sets up the application and runs it until exited
@@ -25,7 +26,7 @@ public:
 	// Sets shouldExit to true which then will exit the application
 	void Exit() { shouldExit = true; }
 
-private:
+protected:
 	
 	// Sets up the application 
 	// Creates a glfw window with the title, with and height
@@ -35,7 +36,19 @@ private:
 
 	// The glfw window for this application
 	GLFWwindow * window;
+
+	// Width of the screen in pixels
+	int width;
+	// Height of the screen in pixels
+	int height;
 	// If the application should exit
 	bool shouldExit;
+private:
+	// The amount of updates this frame
+	unsigned int fps;
+	// The render clear colour
+	float clearColour[4];
+	// The time since last frame
+	double deltaTime;
 };
 

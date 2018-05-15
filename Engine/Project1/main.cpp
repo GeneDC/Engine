@@ -2,7 +2,7 @@
 
 int main()
 {
-	Application* app = new Application3D();
+	Application3D* app = new Application3D();
 
 	// Run the application
 	if (app->Run("Engine", 1280, 720) == false)
