@@ -33,7 +33,7 @@ bool Application3D::Startup()
 	// Create gizmos
 	Gizmos::create(30000, 30000, 30000, 30000);
 
-	camera.SetPos({ 0, 0, 10, 1 });
+	camera.SetPos({ 0, 2, 10, 1 });
 
 	float aspectRatio = (float)width / (float)height;
 	float viewAngle = glm::pi<float>() * 0.25f;
@@ -41,8 +41,8 @@ bool Application3D::Startup()
 	float farClip = 1000.0f;
 	camera.SetProjectionMatrix(glm::perspective(viewAngle, aspectRatio, nearClip, farClip));
 
-	shader.loadShader(aie::eShaderStage::VERTEX, "./shaders/simple.vert");
-	shader.loadShader(aie::eShaderStage::FRAGMENT, "./shaders/simple.frag");
+	shader.loadShader(aie::eShaderStage::VERTEX, "./shaders/simpleTexture.vert");
+	shader.loadShader(aie::eShaderStage::FRAGMENT, "./shaders/simpleTexture.frag");
 	// Check if the shader loaded correctly
 	if (shader.link() == false)
 	{
@@ -50,51 +50,33 @@ bool Application3D::Startup()
 		return false;
 	}
 
-	//quadMesh.InitialiseQuad();
-
 	// Make sure the obj loaded correctly
-	assert(Loader::LoadOBJ(quadMesh, "./cube.OBJ") == true);
+	//assert(Loader::LoadOBJ(quadMesh, "./cube.OBJ") == true);
 
-	//// Define 8 vertices for 12 tris
-	//Mesh::Vertex verts[8];
-	//verts[0].position = { 1.f, -1.0f, -1.0f, 1.0f };
-	//verts[1].position = { 1.f, -1.0f, 1.0f, 1.0f };
-	//verts[2].position = { -1.f, -1.0f, 1.0f, 1.0f };
-	//verts[3].position = { -1.f, -1.0f, -1.0f, 1.0f };
-	//verts[4].position = { 1.f, 1.0f, -1.0f, 1.0f };
-	//verts[5].position = { 1.f, 1.0f, 1.0f, 1.0f };
-	//verts[6].position = { -1.f, 1.0f, 1.0f, 1.0f };
-	//verts[7].position = { -1.f, 1.0f, -1.0f, 1.0f };
+	quadMesh.InitialiseQuad();
 
-	//unsigned int indices[36] = 
+	//// create a 2x2 black-n-white checker texture
+	//// RED simply means one colour channel, i.e. grayscale
+	//unsigned char texelData[4] = { 0, 255, 255, 0 };
+	//texture = Texture::Create(2, 2, Texture::RED, texelData);
+
+	//// Create a 2x2 RGB texture
+	//unsigned char texelData[16] = 
 	//{
-	//	5, 1, 4,
-	//	5, 4, 8,
-	//	3, 7, 8,
-	//	3, 8, 4,
-	//	2, 6, 3,
-	//	6, 7, 3,
-	//	1, 5, 2,
-	//	5, 6, 2,
-	//	5, 8, 6,
-	//	8, 7, 6,
-	//	1, 2, 3,
-	//	1, 3, 4
+	//	255, 0, 0, 255,
+	//	0, 255, 0, 255,
+	//	0, 0, 255, 255,
+	//	255, 255, 0, 255
 	//};
-
-	//for (size_t i = 0; i < 36; i++)
-	//{
-	//	indices[i]--;
-	//}
-
-	//quadMesh.Initialise(8, verts, 36, indices);
+	//texture = Texture::Create(2, 2, Texture::RGBA, texelData);
+	 Texture::Load("./rock_large.png", texture);
 
 	// make the quad 5 units wide
 	quadTransform = 
 	{
-		1,0,0,0,
-		0,1,0,0,
-		0,0,1,0,
+		10,0,0,0,
+		0,10,0,0,
+		0,0,10,0,
 		0,0,0,1 
 	};
 
@@ -102,8 +84,6 @@ bool Application3D::Startup()
 
 	//glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 	
-	glEnable(GL_DEPTH);
-
 	return true;
 }
 
@@ -170,22 +150,12 @@ void Application3D::Draw()
 	// Clear gizmos
 	Gizmos::clear();
 
-	// Bind the shader
-	shader.bind();
+	glm::mat4 tempTransform = camera.GetTransform();
+	tempTransform[3] = { 0, 0, 0, 1 };
+	Gizmos::addTransform(tempTransform, 3.0f);
 
-	//float elapsedTime = (float)glfwGetTime();
-	//std::cout << elapsedTime << std::endl;
-	//shader.bindUniform("elapsedTime", elapsedTime);
-
-	// Bind the transform
-	auto pvm = camera.GetProjectionMatrix() * camera.GetViewMatrix() * quadTransform;
-	shader.bindUniform("ProjectionViewModel", pvm);
-
-	quadMesh.Draw();
-
-	Gizmos::addTransform(camera.GetTransform(), 3.0f);
-	glm::vec4 white(1);
-	glm::vec4 black(0, 0, 0, 1);
+	glm::vec4 white(0.5f, 0.5f, 0.5f, 1);
+	glm::vec4 black(0.2f, 0.2f, 0.2f, 1);
 	for (int i = 0; i < 21; ++i)
 	{
 		Gizmos::addLine(glm::vec3(-10 + i, 0, 10),
@@ -197,4 +167,24 @@ void Application3D::Draw()
 	}
 
 	Gizmos::draw(camera.GetProjectionMatrix() * camera.GetViewMatrix());
+	//float elapsedTime = (float)glfwGetTime();
+	//std::cout << elapsedTime << std::endl;
+	//shader.bindUniform("elapsedTime", elapsedTime);
+
+	// Bind the transform
+	auto pvm = camera.GetProjectionMatrix() * camera.GetViewMatrix() * quadTransform;
+	shader.bindUniform("ProjectionViewModel", pvm);
+
+	// bind texture location
+	shader.bindUniform("diffuseTexture", 0);
+
+	// bind texture to specified location
+	texture.Bind(0);
+
+	// Bind the shader
+	shader.bind();
+
+	quadMesh.Draw();
+
+
 }

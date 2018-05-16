@@ -2,6 +2,7 @@
 #include "Application.h"
 #include "Camera.h"
 #include "Mesh.h"
+#include "Texture.h"
 
 #pragma warning(push)
 #pragma warning( disable : 4201)
@@ -33,5 +34,6 @@ private:
 	aie::ShaderProgram shader;
 	Mesh quadMesh;
 	glm::mat4 quadTransform;
+	Texture texture;
 };
 

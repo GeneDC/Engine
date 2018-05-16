@@ -70,6 +70,15 @@ bool Application::Run(const char * title, int a_width, int a_height)
 	// Run until the window should be closed (e.g. pressing the x button)
 	while (glfwWindowShouldClose(window) == false && shouldExit == false)
 	{
+		// clear input
+		aie::Input::getInstance()->clearStatus();
+		glfwPollEvents();
+
+		// Skip if the application is not the focus or is minimised
+		if (skipIfNotFocus && glfwGetWindowAttrib(window, GLFW_FOCUSED) == 0
+			|| skipIfMinimized && glfwGetWindowAttrib(window, GLFW_ICONIFIED) != 0)
+			continue;
+
 		// Get the current time
 		currTime = glfwGetTime();
 		// Set deltaTime to the change in time
@@ -77,12 +86,8 @@ bool Application::Run(const char * title, int a_width, int a_height)
 		// Set the previous time
 		prevTime = currTime;
 
-		// clear input
-		aie::Input::getInstance()->clearStatus();
-		glfwPollEvents();
-
 		// Set the clear colour
-		glClearColor(0, 0.15f, 0.15f, 1.0f);
+		glClearColor(0, 0.1f, 0.1f, 1.0f);
 		glEnable(GL_DEPTH);
 		// Clear the screen
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

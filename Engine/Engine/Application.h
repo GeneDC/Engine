@@ -6,7 +6,7 @@ class Application
 {
 public:
 	Application() : window(nullptr), shouldExit(false), width(100), height(100)
-		, clearColour{0, 0.15f, 0.15f, 10.f} {};
+		, clearColour{0, 0.15f, 0.15f, 10.f}, skipIfNotFocus(true), skipIfMinimized(true) {};
 	virtual ~Application() = default;
 
 	// Sets up the application and runs it until exited
@@ -50,5 +50,9 @@ private:
 	float clearColour[4];
 	// The time since last frame
 	double deltaTime;
+	// If the application should not update if it is not the focus
+	bool skipIfNotFocus;
+	// If the application should not update if it is minimized
+	bool skipIfMinimized;
 };
 
