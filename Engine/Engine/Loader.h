@@ -237,13 +237,15 @@ private:
 
 		vi.v_idx = fixIndex(atoi(token), vsize);
 		token += strcspn(token, "/ \t\r");
-		if (token[0] != '/') {
+		if (token[0] != '/') 
+		{
 			return vi;
 		}
 		token++;
 
 		// i//k
-		if (token[0] == '/') {
+		if (token[0] == '/') 
+		{
 			token++;
 			vi.vn_idx = fixIndex(atoi(token), vnsize);
 			token += strcspn(token, "/ \t\r");
@@ -253,7 +255,8 @@ private:
 		// i/j/k or i/j
 		vi.vt_idx = fixIndex(atoi(token), vtsize);
 		token += strcspn(token, "/ \t\r");
-		if (token[0] != '/') {
+		if (token[0] != '/')
+		{
 			return vi;
 		}
 

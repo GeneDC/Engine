@@ -85,7 +85,8 @@ bool Loader::LoadOBJ(Mesh & mesh, const char * path)
 			std::vector<vertex_index> face;
 			while (!isNewLine(token[0]))
 			{
-				vertex_index vi = parseTriple(token, static_cast<int>(temp_verts.size() / 3),
+				vertex_index vi = parseTriple(token, 
+					static_cast<int>(temp_verts.size() / 3),
 					static_cast<int>(normals.size() / 3),
 					static_cast<int>(uvs.size() / 2));
 				face.push_back(vi);
@@ -113,13 +114,15 @@ bool Loader::LoadOBJ(Mesh & mesh, const char * path)
 	const unsigned int indexCount = (unsigned int)faceGroup.size() * 3;
 	unsigned int* indices = new unsigned int[indexCount];
 
-	for (size_t i = 0; i < faceGroup.size(); i += 3)
+	int index = 0;
+	for (size_t i = 0; i < faceGroup.size(); ++i)
 	{
-		indices[i] = std::move(faceGroup[i][0].v_idx--);
-		indices[i + 1] = std::move(faceGroup[i][1].v_idx--);
-		indices[i + 2] = std::move(faceGroup[i][2].v_idx--);
-}
-	
+		indices[index] = std::move(faceGroup[i][0].v_idx);
+		indices[index + 1] = std::move(faceGroup[i][1].v_idx);
+		indices[index + 2] = std::move(faceGroup[i][2].v_idx);
+		index += 3;
+	}
+
 	mesh.Initialise(vertexCount, verts, indexCount, indices);
 
 	return true;

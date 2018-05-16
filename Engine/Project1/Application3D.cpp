@@ -77,7 +77,7 @@ bool Application3D::Startup()
 	//	1, 5, 2,
 	//	5, 6, 2,
 	//	5, 8, 6,
-	//	8, 7, 6, 
+	//	8, 7, 6,
 	//	1, 2, 3,
 	//	1, 3, 4
 	//};
@@ -173,9 +173,9 @@ void Application3D::Draw()
 	// Bind the shader
 	shader.bind();
 
-	float elapsedTime = (float)glfwGetTime();
-	std::cout << elapsedTime << std::endl;
-	shader.bindUniform("elapsedTime", elapsedTime);
+	//float elapsedTime = (float)glfwGetTime();
+	//std::cout << elapsedTime << std::endl;
+	//shader.bindUniform("elapsedTime", elapsedTime);
 
 	// Bind the transform
 	auto pvm = camera.GetProjectionMatrix() * camera.GetViewMatrix() * quadTransform;
