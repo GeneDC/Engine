@@ -25,10 +25,7 @@ public:
 	// Make this mesh a quad
 	void InitialiseQuad();
 	// Draw this mesh
-	virtual void Draw();
-	static inline bool isSpace(const char c) { return (c == ' ') || (c == '\t'); }
-
-	static bool LoadOBJ(Mesh& mesh, const char* path);
+	virtual void Draw();
 
 protected:
 	// How many tris this mesh has

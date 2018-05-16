@@ -31,10 +31,10 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="shaders\simple.frag">
+    <None Include="..\bin\shaders\simple.frag">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="shaders\simple.vert">
+    <None Include="..\bin\shaders\simple.vert">
       <Filter>Shaders</Filter>
     </None>
   </ItemGroup>

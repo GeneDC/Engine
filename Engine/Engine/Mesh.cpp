@@ -4,11 +4,6 @@
 #include <gl_core_4_4.h>
 #include <GLFW\glfw3.h>
 
-#include <vector>
-
-#include <iostream>
-#include <sstream>
-#include <fstream>
 
 Mesh::~Mesh()
 {
@@ -84,106 +79,4 @@ void Mesh::Draw()
 	}
 	else
 		glDrawArrays(GL_TRIANGLES, 0, 3 * triCount);
-}
-
-bool Mesh::LoadOBJ(Mesh & mesh, const char * path)
-{
-	std::ifstream inStream;
-	(path);
-	if (!inStream) {
-		std::cout << "Cannot open file [" << path << "]" << std::endl;
-		return false;
-	}
-
-	std::vector< unsigned int > vertexIndices, uvIndices, normalIndices;
-	std::vector< glm::vec3 > temp_vertices;
-	std::vector< glm::vec2 > temp_uvs;
-	std::vector< glm::vec3 > temp_normals;
-
-	int maxchars = 8192;                                  // Alloc enough size.
-	std::vector<char> buf(static_cast<size_t>(maxchars)); // Alloc enough size.
-	while (inStream.peek() != -1) {
-		inStream.getline(&buf[0], maxchars);
-
-		std::string linebuf(&buf[0]);
-
-		// Trim newline '\r\n' or '\n'
-		if (linebuf.size() > 0) {
-			if (linebuf[linebuf.size() - 1] == '\n')
-				linebuf.erase(linebuf.size() - 1);
-		}
-		if (linebuf.size() > 0) {
-			if (linebuf[linebuf.size() - 1] == '\r')
-				linebuf.erase(linebuf.size() - 1);
-		}
-
-		// Skip if empty line.
-		if (linebuf.empty()) {
-			continue;
-		}
-
-		// Skip leading space.
-		const char *token = linebuf.c_str();
-		token += strspn(token, " \t");
-
-		assert(token);
-		if (token[0] == '\0')
-			continue; // empty line
-
-		if (token[0] == '#')
-			continue; // comment line
-
-					  // vertex
-		if (token[0] == 'v' && isSpace((token[1]))) {
-			token += 2;
-			float x, y, z;
-			parseFloat3(x, y, z, token);
-			v.push_back(x);
-			v.push_back(y);
-			v.push_back(z);
-			continue;
-		}
-
-		// normal
-		if (token[0] == 'v' && token[1] == 'n' && isSpace((token[2]))) {
-			token += 3;
-			float x, y, z;
-			parseFloat3(x, y, z, token);
-			vn.push_back(x);
-			vn.push_back(y);
-			vn.push_back(z);
-			continue;
-		}
-
-		// texcoord
-		if (token[0] == 'v' && token[1] == 't' && isSpace((token[2]))) {
-			token += 3;
-			float x, y;
-			parseFloat2(x, y, token);
-			vt.push_back(x);
-			vt.push_back(y);
-			continue;
-		}
-
-		// face
-		if (token[0] == 'f' && isSpace((token[1]))) {
-			token += 2;
-			token += strspn(token, " \t");
-
-			std::vector<vertex_index> face;
-			while (!isNewLine(token[0])) {
-				vertex_index vi = parseTriple(token, static_cast<int>(v.size() / 3),
-					static_cast<int>(vn.size() / 3),
-					static_cast<int>(vt.size() / 2));
-				face.push_back(vi);
-				size_t n = strspn(token, " \t\r");
-				token += n;
-			}
-
-			faceGroup.push_back(face);
-
-			continue;
-		}
-
-	return false;
 }

@@ -1,5 +1,7 @@
 #include "Application3D.h"
 
+#include "Loader.h"
+
 // Make sure you allways include gl core first
 #include <gl_core_4_4.h>
 #include <GLFW\glfw3.h>
@@ -48,18 +50,59 @@ bool Application3D::Startup()
 		return false;
 	}
 
-	quadMesh.InitialiseQuad();
+	//quadMesh.InitialiseQuad();
 
-	// make the quad 10 units wide
-	quadTransform = {
-		10,0,0,0,
-		0,10,0,0,
-		0,0,10,0,
-		0,0,0,1 };
+	// Make sure the obj loaded correctly
+	assert(Loader::LoadOBJ(quadMesh, "./cube.OBJ") == true);
+
+	//// Define 8 vertices for 12 tris
+	//Mesh::Vertex verts[8];
+	//verts[0].position = { 1.f, -1.0f, -1.0f, 1.0f };
+	//verts[1].position = { 1.f, -1.0f, 1.0f, 1.0f };
+	//verts[2].position = { -1.f, -1.0f, 1.0f, 1.0f };
+	//verts[3].position = { -1.f, -1.0f, -1.0f, 1.0f };
+	//verts[4].position = { 1.f, 1.0f, -1.0f, 1.0f };
+	//verts[5].position = { 1.f, 1.0f, 1.0f, 1.0f };
+	//verts[6].position = { -1.f, 1.0f, 1.0f, 1.0f };
+	//verts[7].position = { -1.f, 1.0f, -1.0f, 1.0f };
+
+	//unsigned int indices[36] = 
+	//{
+	//	5, 1, 4,
+	//	5, 4, 8,
+	//	3, 7, 8,
+	//	3, 8, 4,
+	//	2, 6, 3,
+	//	6, 7, 3,
+	//	1, 5, 2,
+	//	5, 6, 2,
+	//	5, 8, 6,
+	//	8, 7, 6, 
+	//	1, 2, 3,
+	//	1, 3, 4
+	//};
+
+	//for (size_t i = 0; i < 36; i++)
+	//{
+	//	indices[i]--;
+	//}
+
+	//quadMesh.Initialise(8, verts, 36, indices);
+
+	// make the quad 5 units wide
+	quadTransform = 
+	{
+		1,0,0,0,
+		0,1,0,0,
+		0,0,1,0,
+		0,0,0,1 
+	};
 
 	moveSpeed = 10.0f;
 
 	//glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	
+	glEnable(GL_DEPTH);
 
 	return true;
 }
@@ -102,16 +145,16 @@ void Application3D::Update(const float & a_deltaTime)
 	rot *= glm::angleAxis(-centreMousePos.y * 0.05f * a_deltaTime, glm::vec3{ 1, 0, 0 });
 	camera.GetTransform() *= glm::mat4_cast(rot);
 
-	auto& forward = cameraTransform[2];
-	auto& right	 = cameraTransform[0];
-	right.y = 0.0f;
-	right = glm::normalize(right);
+	//auto& forward = cameraTransform[2];
+	//auto& right	 = cameraTransform[0];
+	//right.y = 0.0f;
+	//right = glm::normalize(right);
 
-	glm::vec4 newUp = { glm::cross(glm::vec3(forward), glm::vec3(right)), 0 };
-	
-	cameraTransform[0] = right;
-	cameraTransform[1] = newUp;
-	cameraTransform[2] = forward;
+	//glm::vec4 newUp = { glm::cross(glm::vec3(forward), glm::vec3(right)), 0 };
+	//
+	//cameraTransform[0] = right;
+	//cameraTransform[1] = newUp;
+	//cameraTransform[2] = forward;
 
 	// Set the mouse to be at the centre of the screen
 	glfwSetCursorPos(window, width >> 1, height >> 1);
@@ -129,6 +172,10 @@ void Application3D::Draw()
 
 	// Bind the shader
 	shader.bind();
+
+	float elapsedTime = (float)glfwGetTime();
+	std::cout << elapsedTime << std::endl;
+	shader.bindUniform("elapsedTime", elapsedTime);
 
 	// Bind the transform
 	auto pvm = camera.GetProjectionMatrix() * camera.GetViewMatrix() * quadTransform;
