@@ -73,26 +73,26 @@
     <OutDir>$(SolutionDir)build\$(ProjectName)\$(Configuration)\$(Platform)\</OutDir>
     <IntDir>$(SolutionDir)temp\$(ProjectName)\$(Configuration)\$(Platform)\</IntDir>
     <TargetName>$(ProjectName)_d</TargetName>
-    <IncludePath>$(SolutionDir)dependencies\glfw\include;$(SolutionDir)dependencies\glm;$(SolutionDir)dependencies\stb;$(SolutionDir)dependencies\imgui;$(SolutionDir)dependencies\opengl_core;$(SolutionDir)dependencies\aie;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)dependencies\glfw\include;$(SolutionDir)dependencies\glm;$(SolutionDir)dependencies\stb;$(SolutionDir)dependencies\imgui;$(SolutionDir)dependencies\opengl_core;$(SolutionDir)dependencies\aie;$(SolutionDir)dependencies\utilities;$(SolutionDir)dependencies\utilities;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(IncludePath)</IncludePath>
     <LibraryPath>$(SolutionDir)dependencies\glfw\lib-vc2017;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <OutDir>$(SolutionDir)build\$(ProjectName)\$(Configuration)\$(Platform)\</OutDir>
     <IntDir>$(SolutionDir)temp\$(ProjectName)\$(Configuration)\$(Platform)\</IntDir>
-    <IncludePath>$(SolutionDir)dependencies\glfw\include;$(SolutionDir)dependencies\glm;$(SolutionDir)dependencies\stb;$(SolutionDir)dependencies\imgui;$(SolutionDir)dependencies\opengl_core;$(SolutionDir)dependencies\aie;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)dependencies\glfw\include;$(SolutionDir)dependencies\glm;$(SolutionDir)dependencies\stb;$(SolutionDir)dependencies\imgui;$(SolutionDir)dependencies\opengl_core;$(SolutionDir)dependencies\aie;$(SolutionDir)dependencies\utilities;$(SolutionDir)dependencies\utilities;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(IncludePath)</IncludePath>
     <LibraryPath>$(SolutionDir)dependencies\glfw\lib-vc2017;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <OutDir>$(SolutionDir)build\$(ProjectName)\$(Configuration)\$(Platform)\</OutDir>
     <IntDir>$(SolutionDir)temp\$(ProjectName)\$(Configuration)\$(Platform)\</IntDir>
     <TargetName>$(ProjectName)_d</TargetName>
-    <IncludePath>$(SolutionDir)dependencies\glfw\include;$(SolutionDir)dependencies\glm;$(SolutionDir)dependencies\stb;$(SolutionDir)dependencies\imgui;$(SolutionDir)dependencies\opengl_core;$(SolutionDir)dependencies\aie;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)dependencies\glfw\include;$(SolutionDir)dependencies\glm;$(SolutionDir)dependencies\stb;$(SolutionDir)dependencies\imgui;$(SolutionDir)dependencies\opengl_core;$(SolutionDir)dependencies\aie;$(SolutionDir)dependencies\utilities;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(IncludePath)</IncludePath>
     <LibraryPath>$(SolutionDir)dependencies\glfw\lib-vc2017\x64;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <OutDir>$(SolutionDir)build\$(ProjectName)\$(Configuration)\$(Platform)\</OutDir>
     <IntDir>$(SolutionDir)temp\$(ProjectName)\$(Configuration)\$(Platform)\</IntDir>
-    <IncludePath>$(SolutionDir)dependencies\glfw\include;$(SolutionDir)dependencies\glm;$(SolutionDir)dependencies\stb;$(SolutionDir)dependencies\imgui;$(SolutionDir)dependencies\opengl_core;$(SolutionDir)dependencies\aie;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)dependencies\glfw\include;$(SolutionDir)dependencies\glm;$(SolutionDir)dependencies\stb;$(SolutionDir)dependencies\imgui;$(SolutionDir)dependencies\opengl_core;$(SolutionDir)dependencies\aie;$(SolutionDir)dependencies\utilities;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(IncludePath)</IncludePath>
     <LibraryPath>$(SolutionDir)dependencies\glfw\lib-vc2017\x64;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -170,7 +170,6 @@
     <ClCompile Include="..\dependencies\opengl_core\gl_core_4_4.c" />
     <ClCompile Include="Application.cpp" />
     <ClCompile Include="Camera.cpp" />
-    <ClCompile Include="Loader.cpp" />
     <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="Texture.cpp" />
   </ItemGroup>
@@ -178,8 +177,10 @@
     <ClInclude Include="Application.h" />
     <ClInclude Include="Camera.h" />
     <ClInclude Include="Loader.h" />
+    <ClInclude Include="Material.h" />
     <ClInclude Include="Mesh.h" />
     <ClInclude Include="Texture.h" />
+    <ClInclude Include="tiny_obj_loader.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

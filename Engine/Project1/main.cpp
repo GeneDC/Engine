@@ -6,7 +6,11 @@ int main()
 
 	// Run the application
 	if (app->Run("Engine", 1280, 720) == false)
+	{
+		delete app;
+		system("pause");
 		return -1;
+	}
 
 	delete app;
 

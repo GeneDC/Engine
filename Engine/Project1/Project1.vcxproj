@@ -70,27 +70,27 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <IncludePath>$(SolutionDir)Engine;$(SolutionDir)dependencies\glm;$(SolutionDir)dependencies\aie;$(SolutionDir)dependencies\glfw\include;$(SolutionDir)dependencies\opengl_core;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)Engine;$(SolutionDir)dependencies\glm;$(SolutionDir)dependencies\aie;$(SolutionDir)dependencies\glfw\include;$(SolutionDir)dependencies\opengl_core;$(SolutionDir)dependencies\utilities;$(IncludePath)</IncludePath>
     <OutDir>$(SolutionDir)build\$(ProjectName)\$(Configuration)\$(Platform)\</OutDir>
     <IntDir>$(SolutionDir)temp\$(ProjectName)\$(Configuration)\$(Platform)\</IntDir>
     <LibraryPath>$(SolutionDir)build\Engine\$(Configuration)\$(Platform);$(LibraryPath)</LibraryPath>
     <TargetName>$(ProjectName)_d</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <IncludePath>$(SolutionDir)Engine;$(SolutionDir)dependencies\glm;$(SolutionDir)dependencies\aie;$(SolutionDir)dependencies\glfw\include;$(SolutionDir)dependencies\opengl_core;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)Engine;$(SolutionDir)dependencies\glm;$(SolutionDir)dependencies\aie;$(SolutionDir)dependencies\glfw\include;$(SolutionDir)dependencies\opengl_core;$(SolutionDir)dependencies\utilities;$(IncludePath)</IncludePath>
     <OutDir>$(SolutionDir)build\$(ProjectName)\$(Configuration)\$(Platform)\</OutDir>
     <IntDir>$(SolutionDir)temp\$(ProjectName)\$(Configuration)\$(Platform)\</IntDir>
     <LibraryPath>$(SolutionDir)build\Engine\$(Configuration)\$(Platform);$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>$(SolutionDir)Engine;$(SolutionDir)dependencies\glm;$(SolutionDir)dependencies\aie;$(SolutionDir)dependencies\glfw\include;$(SolutionDir)dependencies\opengl_core;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)Engine;$(SolutionDir)dependencies\glm;$(SolutionDir)dependencies\aie;$(SolutionDir)dependencies\glfw\include;$(SolutionDir)dependencies\opengl_core;$(SolutionDir)dependencies\utilities;$(IncludePath)</IncludePath>
     <OutDir>$(SolutionDir)build\$(ProjectName)\$(Configuration)\$(Platform)\</OutDir>
     <IntDir>$(SolutionDir)temp\$(ProjectName)\$(Configuration)\$(Platform)\</IntDir>
     <LibraryPath>$(SolutionDir)build\Engine\$(Configuration)\$(Platform);$(LibraryPath)</LibraryPath>
     <TargetName>$(ProjectName)_d</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>$(SolutionDir)Engine;$(SolutionDir)dependencies\glm;$(SolutionDir)dependencies\aie;$(SolutionDir)dependencies\glfw\include;$(SolutionDir)dependencies\opengl_core;$(IncludePath)</IncludePath>
+    <IncludePath>$(SolutionDir)Engine;$(SolutionDir)dependencies\glm;$(SolutionDir)dependencies\aie;$(SolutionDir)dependencies\glfw\include;$(SolutionDir)dependencies\opengl_core;$(SolutionDir)dependencies\utilities;$(IncludePath)</IncludePath>
     <OutDir>$(SolutionDir)build\$(ProjectName)\$(Configuration)\$(Platform)\</OutDir>
     <IntDir>$(SolutionDir)temp\$(ProjectName)\$(Configuration)\$(Platform)\</IntDir>
     <LibraryPath>$(SolutionDir)build\Engine\$(Configuration)\$(Platform);$(LibraryPath)</LibraryPath>
@@ -163,8 +163,10 @@
     <ClInclude Include="Application3D.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\bin\shaders\simple.frag" />
-    <None Include="..\bin\shaders\simple.vert" />
+    <None Include="..\bin\shaders\phong.frag" />
+    <None Include="..\bin\shaders\phong.vert" />
+    <None Include="..\bin\shaders\simpleTexture.frag" />
+    <None Include="..\bin\shaders\simpleTexture.vert" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

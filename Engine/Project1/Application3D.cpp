@@ -37,7 +37,7 @@ bool Application3D::Startup()
 
 	float aspectRatio = (float)width / (float)height;
 	float viewAngle = glm::pi<float>() * 0.25f;
-	float nearClip = 0.1f;
+	float nearClip = 1.0f;
 	float farClip = 1000.0f;
 	camera.SetProjectionMatrix(glm::perspective(viewAngle, aspectRatio, nearClip, farClip));
 
@@ -50,28 +50,21 @@ bool Application3D::Startup()
 		return false;
 	}
 
+	phongShader.loadShader(aie::eShaderStage::VERTEX, "./shaders/phong.vert");
+	phongShader.loadShader(aie::eShaderStage::FRAGMENT, "./shaders/phong.frag");
+	// Check if the shader loaded correctly
+	if (phongShader.link() == false)
+	{
+		std::cout << "Shader Error: " << phongShader.getLastError() << std::endl;
+		return false;
+	}
+
 	// Make sure the obj loaded correctly
-	//assert(Loader::LoadOBJ(quadMesh, "./cube.OBJ") == true);
+	assert(Loader::LoadOBJ(soulSpear, "./assets/soulspear/soulspear.obj") == true);
+	assert(Loader::LoadOBJ(quadMesh, "./quad.obj") == true);
 
-	quadMesh.InitialiseQuad();
+	//quadMesh.InitialiseQuad();
 
-	//// create a 2x2 black-n-white checker texture
-	//// RED simply means one colour channel, i.e. grayscale
-	//unsigned char texelData[4] = { 0, 255, 255, 0 };
-	//texture = Texture::Create(2, 2, Texture::RED, texelData);
-
-	//// Create a 2x2 RGB texture
-	//unsigned char texelData[16] = 
-	//{
-	//	255, 0, 0, 255,
-	//	0, 255, 0, 255,
-	//	0, 0, 255, 255,
-	//	255, 255, 0, 255
-	//};
-	//texture = Texture::Create(2, 2, Texture::RGBA, texelData);
-	 Texture::Load("./rock_large.png", texture);
-
-	// make the quad 5 units wide
 	quadTransform = 
 	{
 		10,0,0,0,
@@ -79,6 +72,12 @@ bool Application3D::Startup()
 		0,0,10,0,
 		0,0,0,1 
 	};
+
+	modelTransform = glm::mat4(1);
+
+	light.diffuse = { 1, 1, 0 };
+	light.specular = { 1, 1, 0 };
+	ambientLight = { 1, 1, 1 };
 
 	moveSpeed = 10.0f;
 
@@ -139,6 +138,9 @@ void Application3D::Update(const float & a_deltaTime)
 	// Set the mouse to be at the centre of the screen
 	glfwSetCursorPos(window, width >> 1, height >> 1);
 
+	// rotate light
+	light.direction = glm::normalize(glm::vec3(glm::cos(glfwGetTime() * 2),
+		glm::sin(glfwGetTime() * 2), 0));
 
 	// Close the app if esc is pressed
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
@@ -171,20 +173,45 @@ void Application3D::Draw()
 	//std::cout << elapsedTime << std::endl;
 	//shader.bindUniform("elapsedTime", elapsedTime);
 
+
+	// bind transforms for lighting
+	phongShader.bindUniform("NormalMatrix",	glm::inverseTranspose(glm::mat3(modelTransform)));
+
+	// bind light
+	phongShader.bindUniform("Ia", ambientLight);
+	phongShader.bindUniform("Id", light.diffuse);
+	phongShader.bindUniform("Is", light.specular);
+	phongShader.bindUniform("LightDirection", light.direction);
+
+	phongShader.bindUniform("cameraPosition", glm::vec3(camera.GetPosition()));
+
 	// Bind the transform
-	auto pvm = camera.GetProjectionMatrix() * camera.GetViewMatrix() * quadTransform;
-	shader.bindUniform("ProjectionViewModel", pvm);
+	auto pvm = camera.GetProjectionMatrix() * camera.GetViewMatrix() * glm::mat4(1);
+	phongShader.bindUniform("ProjectionViewModel", pvm);
 
-	// bind texture location
-	shader.bindUniform("diffuseTexture", 0);
+	phongShader.bind();
 
-	// bind texture to specified location
-	texture.Bind(0);
+	soulSpear.Draw();
 
-	// Bind the shader
-	shader.bind();
+	glm::mat4 mat = 
+	{
+		1,0,0,0,
+		0,1,0,0,
+		0,0,1,0,
+		10,0,0,1
+	};
+	pvm = camera.GetProjectionMatrix() * camera.GetViewMatrix() * mat;
+	phongShader.bindUniform("ProjectionViewModel", pvm);
 
-	quadMesh.Draw();
+	soulSpear.Draw();
 
+	//// Bind the transform
+	//pvm = camera.GetProjectionMatrix() * camera.GetViewMatrix() * quadTransform;
+	//shader.bindUniform("ProjectionViewModel", pvm);
+
+	glUseProgram(1);
+	//shader.bind();
+
+	//quadMesh.Draw();
 
 }

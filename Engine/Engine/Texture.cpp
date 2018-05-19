@@ -4,7 +4,10 @@
 #include <gl_core_4_4.h>
 
 #define STB_IMAGE_IMPLEMENTATION
+#pragma warning(push)
+#pragma warning( disable : 4244)
 #include <stb_image.h>
+#pragma warning(pop)
 
 bool Texture::Load(const char * filename, Texture & texture)
 {
@@ -57,7 +60,10 @@ bool Texture::Load(const char * filename, Texture & texture)
 	glBindTexture(GL_TEXTURE_2D, 0);
 	texture.width = (unsigned int)x;
 	texture.height = (unsigned int)y;
-	//m_filename = filename;
+
+	texture.name = filename;
+	texture.name = texture.name.substr(texture.name.find_last_of('/') + 1);
+	
 
 	return true;
 }

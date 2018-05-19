@@ -2,270 +2,233 @@
 #include "Mesh.h"
 
 #include <string>
+#include <map>
 
+#include <vector>
 
-class Loader
+#include <iostream>
+#include <sstream>
+#include <fstream>
+
+#include <stdio.h>
+#include <stdlib.h>
+
+#include "gl_core_4_4.h"
+
+#define TINYOBJLOADER_IMPLEMENTATION
+#pragma warning(push)
+#pragma warning( disable : 4706)
+#include "tiny_obj_loader.h"
+#pragma warning(pop)
+
+namespace Loader
 {
-public:
-	static bool LoadOBJ(Mesh& mesh, const char* path);
+	void CalculateTangents(std::vector<Mesh::Vertex>& vertices, const std::vector<unsigned int>& indices) {
+		unsigned int vertexCount = (unsigned int)vertices.size();
+		glm::vec4* tan1 = new glm::vec4[vertexCount * 2];
+		glm::vec4* tan2 = tan1 + vertexCount;
+		memset(tan1, 0, vertexCount * sizeof(glm::vec4) * 2);
 
-private:
-	Loader() = default;
-	~Loader() = default;
+		unsigned int indexCount = (unsigned int)indices.size();
+		for (unsigned int a = 0; a < indexCount; a += 3) {
+			long i1 = indices[a];
+			long i2 = indices[a + 1];
+			long i3 = indices[a + 2];
 
-	struct vertex_index
-	{
-		int v_idx, vt_idx, vn_idx;
-		vertex_index() {}
-		vertex_index(int idx) : v_idx(idx), vt_idx(idx), vn_idx(idx) {}
-		vertex_index(int vidx, int vtidx, int vnidx)
-			: v_idx(vidx), vt_idx(vtidx), vn_idx(vnidx) {}
-	};
+			const glm::vec4& v1 = vertices[i1].position;
+			const glm::vec4& v2 = vertices[i2].position;
+			const glm::vec4& v3 = vertices[i3].position;
 
-	static inline bool isSpace(const char c) { return (c == ' ') || (c == '\t'); }
+			const glm::vec2& w1 = vertices[i1].texCoord;
+			const glm::vec2& w2 = vertices[i2].texCoord;
+			const glm::vec2& w3 = vertices[i3].texCoord;
 
-	static inline bool isNewLine(const char c) { return (c == '\r') || (c == '\n') || (c == '\0'); }
+			float x1 = v2.x - v1.x;
+			float x2 = v3.x - v1.x;
+			float y1 = v2.y - v1.y;
+			float y2 = v3.y - v1.y;
+			float z1 = v2.z - v1.z;
+			float z2 = v3.z - v1.z;
 
-	// Make index zero-base, and also support relative index.
-	static inline int fixIndex(int idx, int n)
-	{
-		if (idx > 0)
-			return idx - 1;
-		if (idx == 0)
-			return 0;
-		return n + idx; // negative value = relative
+			float s1 = w2.x - w1.x;
+			float s2 = w3.x - w1.x;
+			float t1 = w2.y - w1.y;
+			float t2 = w3.y - w1.y;
+
+			float r = 1.0F / (s1 * t2 - s2 * t1);
+			glm::vec4 sdir((t2 * x1 - t1 * x2) * r, (t2 * y1 - t1 * y2) * r,
+				(t2 * z1 - t1 * z2) * r, 0);
+			glm::vec4 tdir((s1 * x2 - s2 * x1) * r, (s1 * y2 - s2 * y1) * r,
+				(s1 * z2 - s2 * z1) * r, 0);
+
+			tan1[i1] += sdir;
+			tan1[i2] += sdir;
+			tan1[i3] += sdir;
+
+			tan2[i1] += tdir;
+			tan2[i2] += tdir;
+			tan2[i3] += tdir;
+		}
+
+		for (unsigned int a = 0; a < vertexCount; a++) {
+			const glm::vec3& n = glm::vec3(vertices[a].normal);
+			const glm::vec3& t = glm::vec3(tan1[a]);
+
+			// Gram-Schmidt orthogonalize
+			vertices[a].tangent = glm::vec4(glm::normalize(t - n * glm::dot(n, t)), 0);
+
+			// Calculate handedness (direction of bitangent)
+			vertices[a].tangent.w = (glm::dot(glm::cross(glm::vec3(n), glm::vec3(t)), glm::vec3(tan2[a])) < 0.0F) ? 1.0F : -1.0F;
+
+			// calculate bitangent (ignoring for our Vertex, here just for reference)
+			//vertices[a].bitangent = glm::vec4(glm::cross(glm::vec3(vertices[a].normal), glm::vec3(vertices[a].tangent)) * vertices[a].tangent.w, 0);
+			//vertices[a].tangent.w = 0;
+		}
+
+		delete[] tan1;
 	}
-
-	static inline std::string parseString(const char *&token)
+	
+	static bool LoadOBJ(Mesh& a_mesh, const char* a_path)
 	{
-		std::string s;
-		token += strspn(token, " \t");
-		size_t e = strcspn(token, " \t\r");
-		s = std::string(token, &token[e]);
-		token += e;
-		return s;
-	}
+		bool flipTextureV = true;
 
-	static inline int parseInt(const char *&token)
-	{
-		token += strspn(token, " \t");
-		int i = atoi(token);
-		token += strcspn(token, " \t\r");
-		return i;
-	}
-
-	// Tries to parse a floating point number located at s.
-	//
-	// s_end should be a location in the string where reading should absolutely
-	// stop. For example at the end of the string, to prevent buffer overflows.
-	//
-	// Parses the following EBNF grammar:
-	//   sign    = "+" | "-" ;
-	//   END     = ? anything not in digit ?
-	//   digit   = "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" ;
-	//   integer = [sign] , digit , {digit} ;
-	//   decimal = integer , ["." , integer] ;
-	//   float   = ( decimal , END ) | ( decimal , ("E" | "e") , integer , END ) ;
-	//
-	//  Valid strings are for example:
-	//   -0	 +3.1417e+2  -0.0E-3  1.0324  -1.41   11e2
-	//
-	// If the parsing is a success, result is set to the parsed value and true
-	// is returned.
-	//
-	// The function is greedy and will parse until any of the following happens:
-	//  - a non-conforming character is encountered.
-	//  - s_end is reached.
-	//
-	// The following situations triggers a failure:
-	//  - s >= s_end.
-	//  - parse failure.
-	//
-	static bool tryParseDouble(const char *s, const char *s_end, double *result)
-	{
-		if (s >= s_end)
+		if (a_mesh.Empty() == false)
+		{
+			printf("Mesh already initialised, can't re-initialise!\n");
 			return false;
-
-		double mantissa = 0.0;
-		// This exponent is base 2 rather than 10.
-		// However the exponent we parse is supposed to be one of ten,
-		// thus we must take care to convert the exponent/and or the
-		// mantissa to a * 2^E, where a is the mantissa and E is the
-		// exponent.
-		// To get the final double we will use ldexp, it requires the
-		// exponent to be in base 2.
-		int exponent = 0;
-
-		// NOTE: THESE MUST BE DECLARED HERE SINCE WE ARE NOT ALLOWED
-		// TO JUMP OVER DEFINITIONS.
-		char sign = '+';
-		char exp_sign = '+';
-		char const *curr = s;
-
-		// How many characters were read in a loop.
-		int read = 0;
-		// Tells whether a loop terminated due to reaching s_end.
-		bool end_not_reached = false;
-
-		/*
-		BEGIN PARSING.
-		*/
-
-		// Find out what sign we've got.
-		if (*curr == '+' || *curr == '-') {
-			sign = *curr;
-			curr++;
-		}
-		else if (isdigit(*curr)) { /* Pass through. */
-		}
-		else {
-			goto fail;
 		}
 
-		// Read the integer part.
-		end_not_reached = (curr != s_end);
-		while (end_not_reached && isdigit(*curr)) 
+		// Setup some return variables for the tiny obj loader
+		std::vector<tinyobj::shape_t> loadedChunks;
+		std::vector<tinyobj::material_t> loadedMaterials;
+		std::string error = "";
+		std::string file = a_path;
+		std::string folder = file.substr(0, file.find_last_of('/') + 1);
+		// Load the obj and make sure it worked
+		if (tinyobj::LoadObj(loadedChunks, loadedMaterials, error, a_path, folder.c_str()) == false)
 		{
-			mantissa *= 10;
-			mantissa += static_cast<int>(*curr - 0x30);
-			curr++;
-			read++;
-			end_not_reached = (curr != s_end);
+			printf("%s\n", error.c_str());
+			return false;
 		}
 
-		// We must make sure we actually got something.
-		if (read == 0)
-			goto fail;
-		// We allow numbers of form "#", "###" etc.
-		if (!end_not_reached)
-			goto assemble;
+		// Copy materials
+		std::vector<Material> materials;
+		materials.resize(loadedMaterials.size());
+		int index = 0;
+		for (auto& m : loadedMaterials)
+		{
+			materials[index].name = m.name;
 
-		// Read the decimal part.
-		if (*curr == '.') {
-			curr++;
-			read = 1;
-			end_not_reached = (curr != s_end);
-			while (end_not_reached && isdigit(*curr))
+			materials[index].ambient = glm::vec3(m.ambient[0], m.ambient[1], m.ambient[2]);
+			materials[index].diffuse = glm::vec3(m.diffuse[0], m.diffuse[1], m.diffuse[2]);
+			materials[index].specular = glm::vec3(m.specular[0], m.specular[1], m.specular[2]);
+			materials[index].transmittance = glm::vec3(m.transmittance[0], m.transmittance[1], m.transmittance[2]);
+			materials[index].emission = glm::vec3(m.emission[0], m.emission[1], m.emission[2]);
+			materials[index].shininess = m.shininess;
+			materials[index].ior = m.ior;
+			materials[index].dissolve = m.dissolve;
+			materials[index].illum = m.illum;
+
+			// Load in all the textures
+			Texture::Load((folder + m.alpha_texname).c_str(), materials[index].alphaTexture);
+			Texture::Load((folder + m.ambient_texname).c_str(), materials[index].ambientTexture);
+			Texture::Load((folder + m.diffuse_texname).c_str(), materials[index].diffuseTexture);
+			Texture::Load((folder + m.specular_texname).c_str(), materials[index].specularTexture);
+			Texture::Load((folder + m.specular_highlight_texname).c_str(), materials[index].specularHighlightTexture);
+			Texture::Load((folder + m.bump_texname).c_str(), materials[index].normalTexture);
+			Texture::Load((folder + m.displacement_texname).c_str(), materials[index].displacementTexture);
+
+			++index;
+		}
+
+		// Copy mesh chunks
+		std::vector<Mesh::Chunk> meshChunks;
+		meshChunks.reserve(loadedChunks.size());
+		for (auto& loadedChunk : loadedChunks) {
+
+			Mesh::Chunk chunk;
+
+			// generate buffers
+			glGenBuffers(1, &chunk.vbo);
+			glGenBuffers(1, &chunk.ibo);
+			glGenVertexArrays(1, &chunk.vao);
+
+			// bind vertex array aka a mesh wrapper
+			glBindVertexArray(chunk.vao);
+
+			// set the index buffer data
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, chunk.ibo);
+			glBufferData(GL_ELEMENT_ARRAY_BUFFER,
+				loadedChunk.mesh.indices.size() * sizeof(unsigned int),
+				loadedChunk.mesh.indices.data(), GL_STATIC_DRAW);
+
+			// store index count for rendering
+			chunk.indexCount = (unsigned int)loadedChunk.mesh.indices.size();
+
+			// create vertex data
+			std::vector<Mesh::Vertex> vertices;
+			vertices.resize(loadedChunk.mesh.positions.size() / 3);
+			size_t vertCount = vertices.size();
+
+			bool hasPosition = loadedChunk.mesh.positions.empty() == false;
+			bool hasNormal = loadedChunk.mesh.normals.empty() == false;
+			bool hasTexture = loadedChunk.mesh.texcoords.empty() == false;
+
+			for (size_t i = 0; i < vertCount; ++i)
 			{
-				// NOTE: Don't use powf here, it will absolutely murder precision.
-				mantissa += static_cast<int>(*curr - 0x30) * pow(10.0, -read);
-				read++;
-				curr++;
-				end_not_reached = (curr != s_end);
-			}
-		}
-		else if (*curr == 'e' || *curr == 'E') {
-		}
-		else {
-			goto assemble;
-		}
+				if (hasPosition)
+					vertices[i].position = glm::vec4(loadedChunk.mesh.positions[i * 3 + 0], loadedChunk.mesh.positions[i * 3 + 1], loadedChunk.mesh.positions[i * 3 + 2], 1);
+				if (hasNormal)
+					vertices[i].normal = glm::vec4(loadedChunk.mesh.normals[i * 3 + 0], loadedChunk.mesh.normals[i * 3 + 1], loadedChunk.mesh.normals[i * 3 + 2], 0);
 
-		if (!end_not_reached)
-			goto assemble;
-
-		// Read the exponent part.
-		if (*curr == 'e' || *curr == 'E') {
-			curr++;
-			// Figure out if a sign is present and if it is.
-			end_not_reached = (curr != s_end);
-			if (end_not_reached && (*curr == '+' || *curr == '-')) 
-			{
-				exp_sign = *curr;
-				curr++;
-				end_not_reached = (curr != s_end);
-			}
-			else if (isdigit(*curr)) { /* Pass through. */
-			}
-			else {
-				// Empty E is not allowed.
-				goto fail;
+				// flip the T / V (might not always be needed, depends on how mesh was made)
+				if (hasTexture)
+					vertices[i].texCoord = glm::vec2(loadedChunk.mesh.texcoords[i * 2 + 0], flipTextureV ? 1.0f - loadedChunk.mesh.texcoords[i * 2 + 1] : loadedChunk.mesh.texcoords[i * 2 + 1]);
 			}
 
-			read = 0;
-			end_not_reached = (curr != s_end);
-			while (end_not_reached && isdigit(*curr))
-			{
-				exponent *= 10;
-				exponent += static_cast<int>(*curr - 0x30);
-				curr++;
-				read++;
-				end_not_reached = (curr != s_end);
-			}
-			exponent *= (exp_sign == '+' ? 1 : -1);
-			if (read == 0)
-				goto fail;
+			// calculate for normal mapping
+			if (hasNormal && hasTexture)
+				CalculateTangents(vertices, loadedChunk.mesh.indices);
+
+			// bind vertex buffer
+			glBindBuffer(GL_ARRAY_BUFFER, chunk.vbo);
+
+			// fill vertex buffer
+			glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Mesh::Vertex), vertices.data(), GL_STATIC_DRAW);
+
+			// enable first element as positions
+			glEnableVertexAttribArray(0);
+			glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, sizeof(Mesh::Vertex), 0);
+
+			// enable normals
+			glEnableVertexAttribArray(1);
+			glVertexAttribPointer(1, 4, GL_FLOAT, GL_TRUE, sizeof(Mesh::Vertex), (void*)(sizeof(glm::vec4) * 1));
+
+			// enable texture coords
+			glEnableVertexAttribArray(2);
+			glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Mesh::Vertex), (void*)(sizeof(glm::vec4) * 2));
+
+			// enable tangents
+			glEnableVertexAttribArray(3);
+			glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(Mesh::Vertex), (void*)(sizeof(glm::vec4) * 2 + sizeof(glm::vec2)));
+
+			// bind 0 for safety
+			glBindVertexArray(0);
+			glBindBuffer(GL_ARRAY_BUFFER, 0);
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+			// set chunk material
+			chunk.materialID = loadedChunk.mesh.material_ids.empty() ? -1 : loadedChunk.mesh.material_ids[0];
+
+			//meshChunks.push_back(chunk);
+			meshChunks.emplace_back(std::move(chunk));
 		}
 
-	assemble:
-		*result =
-			(sign == '+' ? 1 : -1) * ldexp(mantissa * pow(5.0, exponent), exponent);
+		// Apply the loaded and copied mesh to the mesh
+		a_mesh.Initialise(meshChunks, materials);
+
+		// Successful
 		return true;
-	fail:
-		return false;
-	}
-
-	static inline float parseFloat(const char *&token)
-	{
-		token += strspn(token, " \t");
-
-		const char *end = token + strcspn(token, " \t\r");
-		double val = 0.0;
-		tryParseDouble(token, end, &val);
-		float f = static_cast<float>(val);
-		token = end;
-
-		return f;
-	}
-
-	static inline void parseVec2(glm::vec2 &vec, const char *&token)
-	{
-		vec.x = parseFloat(token);
-		vec.y = parseFloat(token);
-	}
-
-	static inline void parseVec3(glm::vec3 &vec, const char *&token)
-	{
-		vec.x = parseFloat(token);
-		vec.y = parseFloat(token);
-		vec.z = parseFloat(token);
-	}
-
-	// Parse triples: i, i/j/k, i//k, i/j
-	static vertex_index parseTriple(const char *&token, int vsize, int vnsize, int vtsize)
-	{
-		vertex_index vi(-1);
-
-		vi.v_idx = fixIndex(atoi(token), vsize);
-		token += strcspn(token, "/ \t\r");
-		if (token[0] != '/') 
-		{
-			return vi;
-		}
-		token++;
-
-		// i//k
-		if (token[0] == '/') 
-		{
-			token++;
-			vi.vn_idx = fixIndex(atoi(token), vnsize);
-			token += strcspn(token, "/ \t\r");
-			return vi;
-		}
-
-		// i/j/k or i/j
-		vi.vt_idx = fixIndex(atoi(token), vtsize);
-		token += strcspn(token, "/ \t\r");
-		if (token[0] != '/')
-		{
-			return vi;
-		}
-
-		// i/j/k
-		token++; // skip '/'
-		vi.vn_idx = fixIndex(atoi(token), vnsize);
-		token += strcspn(token, "/ \t\r");
-		return vi;
 	}
 
 };
-

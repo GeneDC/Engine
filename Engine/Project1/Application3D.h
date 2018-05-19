@@ -34,6 +34,17 @@ private:
 	aie::ShaderProgram shader;
 	Mesh quadMesh;
 	glm::mat4 quadTransform;
-	Texture texture;
+
+	aie::ShaderProgram phongShader;
+	Mesh soulSpear;
+	glm::mat4 modelTransform;
+
+	struct Light 
+	{
+		glm::vec3 direction;
+		glm::vec3 diffuse;
+		glm::vec3 specular;
+	};
+	Light light;	glm::vec3 ambientLight;
 };
 

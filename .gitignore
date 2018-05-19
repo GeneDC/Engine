@@ -1,5 +1,7 @@
 *.db
 *.opendb
 *Debug/
+*build/
 *temp/
 *.vs/
+*assets/
