@@ -31,7 +31,7 @@ private:
 
 	float moveSpeed;
 
-	aie::ShaderProgram shader;
+	aie::ShaderProgram simpleShader;
 	Mesh quadMesh;
 	glm::mat4 quadTransform;
 
@@ -39,13 +39,13 @@ private:
 	Mesh soulSpear;
 	glm::mat4 modelTransform;
 
-	Mesh dragon;
+	Mesh rock;
 
 	struct Light 
 	{
 		glm::vec3 direction;
 		glm::vec3 diffuse;
-		glm::vec3 specular;
+		glm::vec3 specular;
 	};
 	Light light;	glm::vec3 ambientLight;
 };

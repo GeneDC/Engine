@@ -29,7 +29,6 @@ public:
 	float shininess;
 	float ior;      // index of refraction
 	float dissolve; // 1 == opaque; 0 == fully transparent
-	// illumination model (see http://www.fileformat.info/format/material/)
 	int illum;
 
 	Texture diffuseTexture;				// bound slot 0

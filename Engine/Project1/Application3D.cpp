@@ -41,12 +41,12 @@ bool Application3D::Startup()
 	float farClip = 1000.0f;
 	camera.SetProjectionMatrix(glm::perspective(viewAngle, aspectRatio, nearClip, farClip));
 
-	shader.loadShader(aie::eShaderStage::VERTEX, "./shaders/simpleTexture.vert");
-	shader.loadShader(aie::eShaderStage::FRAGMENT, "./shaders/simpleTexture.frag");
+	simpleShader.loadShader(aie::eShaderStage::VERTEX, "./shaders/simpleTexture.vert");
+	simpleShader.loadShader(aie::eShaderStage::FRAGMENT, "./shaders/simpleTexture.frag");
 	// Check if the shader loaded correctly
-	if (shader.link() == false)
+	if (simpleShader.link() == false)
 	{
-		std::cout << "Shader Error: " << shader.getLastError() << std::endl;
+		std::cout << "Shader Error: " << simpleShader.getLastError() << std::endl;
 		return false;
 	}
 
@@ -61,10 +61,10 @@ bool Application3D::Startup()
 
 	// Make sure the obj loaded correctly
 	assert(Loader::LoadOBJ(soulSpear, "./assets/soulspear/soulspear.obj") == true);
-	assert(Loader::LoadOBJ(dragon, "./assets/stanford/dragon.obj") == true);
-	assert(Loader::LoadOBJ(quadMesh, "./quad.obj") == true);
+	assert(Loader::LoadOBJ(rock, "./assets/Rock_6/Rock_6.OBJ") == true);
+	//assert(Loader::LoadOBJ(quadMesh, "./quad.obj") == true);
 
-	//quadMesh.InitialiseQuad();
+	quadMesh.InitialiseQuad();
 
 	quadTransform = 
 	{
@@ -174,7 +174,6 @@ void Application3D::Draw()
 	//std::cout << elapsedTime << std::endl;
 	//shader.bindUniform("elapsedTime", elapsedTime);
 
-
 	// bind transforms for lighting
 	phongShader.bindUniform("NormalMatrix",	glm::inverseTranspose(glm::mat3(modelTransform)));
 
@@ -183,7 +182,7 @@ void Application3D::Draw()
 	phongShader.bindUniform("Id", light.diffuse);
 	phongShader.bindUniform("Is", light.specular);
 	phongShader.bindUniform("LightDirection", light.direction);
-
+	// Bind the camera position
 	phongShader.bindUniform("cameraPosition", glm::vec3(camera.GetPosition()));
 
 	// Bind the transform
@@ -204,15 +203,14 @@ void Application3D::Draw()
 	pvm = camera.GetProjectionMatrix() * camera.GetViewMatrix() * mat;
 	phongShader.bindUniform("ProjectionViewModel", pvm);
 
-	dragon.Draw();
+	rock.Draw();
 
-	//// Bind the transform
-	//pvm = camera.GetProjectionMatrix() * camera.GetViewMatrix() * quadTransform;
-	//shader.bindUniform("ProjectionViewModel", pvm);
+	// Bind the transform
+	pvm = camera.GetProjectionMatrix() * camera.GetViewMatrix() * quadTransform;
+	simpleShader.bindUniform("ProjectionViewModel", pvm);
 
-	glUseProgram(1);
-	//shader.bind();
+	//simpleShader.bind();
 
-	//quadMesh.Draw();
+	quadMesh.Draw();
 
 }

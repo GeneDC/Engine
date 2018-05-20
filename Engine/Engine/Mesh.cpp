@@ -75,18 +75,19 @@ void Mesh::Initialise(const unsigned int & vertexCount, const Vertex * verts, co
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-	// Create and add a material
-	Material material;
-	material.name = "default";
 	// Create a 2x2 RGB texture
-	unsigned char texelData[16] = 
-	{	
+	unsigned char texelData[16] =
+	{
 		255, 0, 255, 255,	255, 255, 255, 255,
 		255, 255, 255, 255,	255, 0, 255, 255
 	};
-	material.diffuseTexture = Texture::Create(2, 2, Texture::RGBA, texelData);
-	// Add the default material
-	materials.emplace_back(std::move(material));
+	Material newMat;
+	newMat.name = "default";
+	Texture tex = Texture::Create(2, 2, Texture::RGBA, texelData);
+	tex.name = "default";
+	newMat.diffuseTexture = tex;
+	materials.emplace_back(std::move(newMat));
+
 }
 
 void Mesh::Initialise(std::vector<Chunk>& a_meshChunks, std::vector<Material>& a_materials, bool copy /*= false*/)
@@ -111,7 +112,10 @@ void Mesh::Initialise(std::vector<Chunk>& a_meshChunks, std::vector<Material>& a
 				255, 0, 255, 255,	255, 255, 255, 255,
 				255, 255, 255, 255,	255, 0, 255, 255
 			};
-			materials[0].diffuseTexture = Texture::Create(2, 2, Texture::RGBA, texelData);
+			Texture tex = Texture::Create(2, 2, Texture::RGBA, texelData);
+			materials[0].diffuseTexture = tex;
+			materials[0].normalTexture = tex;
+			materials[0].specularTexture = tex;
 		}
 	}
 }
@@ -155,7 +159,7 @@ void Mesh::Draw()
 	int program = -1;
 	glGetIntegerv(GL_CURRENT_PROGRAM, &program);
 
-	if (program == -1) 
+	if (program == -1)
 	{
 		printf("No shader bound!\n");
 		return;

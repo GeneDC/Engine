@@ -76,6 +76,11 @@ Texture Texture::Create(const unsigned int & a_width, const unsigned int a_heigh
 	texture.width = a_width;
 	texture.height = a_height;
 	texture.format = a_format;
+	texture.loadedPixels = new unsigned char[a_width * a_height];
+	for (size_t i = 0; i < a_width * a_height; i++)
+	{
+		texture.loadedPixels[i] = pixels[i];
+	}
 
 	glGenTextures(1, &texture.glHandle);
 	glBindTexture(GL_TEXTURE_2D, texture.glHandle);

@@ -29,8 +29,9 @@ public:
 	// Returns the opengl texture handle
 	unsigned int GetHandle() const { return glHandle; }
 
-private:
 	std::string name;
+
+private:
 	unsigned int width;
 	unsigned int height;
 	unsigned int glHandle;

@@ -371,13 +371,13 @@ namespace Loader
 			materials[index].illum = m.illum;
 
 			// Load in all the textures
-			Texture::Load((folder + m.alpha_texname).c_str(), materials[index].alphaTexture);
-			Texture::Load((folder + m.ambient_texname).c_str(), materials[index].ambientTexture);
-			Texture::Load((folder + m.diffuse_texname).c_str(), materials[index].diffuseTexture);
-			Texture::Load((folder + m.specular_texname).c_str(), materials[index].specularTexture);
-			Texture::Load((folder + m.specular_highlight_texname).c_str(), materials[index].specularHighlightTexture);
-			Texture::Load((folder + m.bump_texname).c_str(), materials[index].normalTexture);
-			Texture::Load((folder + m.displacement_texname).c_str(), materials[index].displacementTexture);
+			assert(m.alpha_texname.size() == 0				|| Texture::Load((folder + m.alpha_texname).c_str(),				materials[index].alphaTexture));
+			assert(m.ambient_texname.size() == 0			|| Texture::Load((folder + m.ambient_texname).c_str(),				materials[index].ambientTexture));
+			assert(m.diffuse_texname.size() == 0			|| Texture::Load((folder + m.diffuse_texname).c_str(),				materials[index].diffuseTexture));
+			assert(m.specular_texname.size() == 0			|| Texture::Load((folder + m.specular_texname).c_str(),				materials[index].specularTexture));
+			assert(m.specular_highlight_texname.size() == 0 || Texture::Load((folder + m.specular_highlight_texname).c_str(),	materials[index].specularHighlightTexture));
+			assert(m.bump_texname.size() == 0				|| Texture::Load((folder + m.bump_texname).c_str(),					materials[index].normalTexture));
+			assert(m.displacement_texname.size() == 0		|| Texture::Load((folder + m.displacement_texname).c_str(),			materials[index].displacementTexture));
 
 			++index;
 		}
