@@ -57,7 +57,7 @@ namespace tinyobj {
 		float shininess;
 		float ior;      // index of refraction
 		float dissolve; // 1 == opaque; 0 == fully transparent
-		// illumination model (see http://www.fileformat.info/format/material/)
+						// illumination model (see http://www.fileformat.info/format/material/)
 		int illum;
 
 		int dummy; // Suppress padding warning.
@@ -69,7 +69,6 @@ namespace tinyobj {
 		std::string bump_texname;               // map_bump, bump
 		std::string displacement_texname;       // disp
 		std::string alpha_texname;              // map_d
-		std::map<std::string, std::string> unknown_parameter;
 	} material_t;
 
 	typedef struct {
@@ -289,7 +288,7 @@ namespace tinyobj {
 		bool end_not_reached = false;
 
 		/*
-				BEGIN PARSING.
+		BEGIN PARSING.
 		*/
 
 		// Find out what sign we've got.
@@ -304,11 +303,13 @@ namespace tinyobj {
 		}
 
 		// Read the integer part.
-		while ((end_not_reached = (curr != s_end)) && isdigit(*curr)) {
+		end_not_reached = (curr != s_end);
+		while (end_not_reached && isdigit(*curr)) {
 			mantissa *= 10;
 			mantissa += static_cast<int>(*curr - 0x30);
 			curr++;
 			read++;
+			end_not_reached = (curr != s_end);
 		}
 
 		// We must make sure we actually got something.
@@ -322,11 +323,13 @@ namespace tinyobj {
 		if (*curr == '.') {
 			curr++;
 			read = 1;
-			while ((end_not_reached = (curr != s_end)) && isdigit(*curr)) {
+			end_not_reached = (curr != s_end);
+			while (end_not_reached && isdigit(*curr)) {
 				// NOTE: Don't use powf here, it will absolutely murder precision.
 				mantissa += static_cast<int>(*curr - 0x30) * pow(10.0, -read);
 				read++;
 				curr++;
+				end_not_reached = (curr != s_end);
 			}
 		}
 		else if (*curr == 'e' || *curr == 'E') {
@@ -342,9 +345,11 @@ namespace tinyobj {
 		if (*curr == 'e' || *curr == 'E') {
 			curr++;
 			// Figure out if a sign is present and if it is.
-			if ((end_not_reached = (curr != s_end)) && (*curr == '+' || *curr == '-')) {
+			end_not_reached = (curr != s_end);
+			if (end_not_reached && (*curr == '+' || *curr == '-')) {
 				exp_sign = *curr;
 				curr++;
+				end_not_reached = (curr != s_end);
 			}
 			else if (isdigit(*curr)) { /* Pass through. */
 			}
@@ -354,11 +359,13 @@ namespace tinyobj {
 			}
 
 			read = 0;
-			while ((end_not_reached = (curr != s_end)) && isdigit(*curr)) {
+			end_not_reached = (curr != s_end);
+			while (end_not_reached && isdigit(*curr)) {
 				exponent *= 10;
 				exponent += static_cast<int>(*curr - 0x30);
 				curr++;
 				read++;
+				end_not_reached = (curr != s_end);
 			}
 			exponent *= (exp_sign == '+' ? 1 : -1);
 			if (read == 0)
@@ -515,7 +522,7 @@ namespace tinyobj {
 		material.dissolve = 1.f;
 		material.shininess = 1.f;
 		material.ior = 1.f;
-		material.unknown_parameter.clear();
+		//material.unknown_parameter.clear();
 	}
 
 	static bool exportFaceGroupToShape(
@@ -630,7 +637,7 @@ namespace tinyobj {
 			if (token[0] == '#')
 				continue; // comment line
 
-			  // new mtl
+						  // new mtl
 			if ((0 == strncmp(token, "newmtl", 6)) && isSpace((token[6]))) {
 				// flush previous material.
 				if (!material.name.empty()) {
@@ -799,18 +806,18 @@ namespace tinyobj {
 				continue;
 			}
 
-			// unknown parameter
-			const char *_space = strchr(token, ' ');
-			if (!_space) {
-				_space = strchr(token, '\t');
-			}
-			if (_space) {
-				std::ptrdiff_t len = _space - token;
-				std::string key(token, static_cast<size_t>(len));
-				std::string value = _space + 1;
-				material.unknown_parameter.insert(
-					std::pair<std::string, std::string>(key, value));
-			}
+			//// unknown parameter
+			//const char *_space = strchr(token, ' ');
+			//if (!_space) {
+			//	_space = strchr(token, '\t');
+			//}
+			//if (_space) {
+			//	std::ptrdiff_t len = _space - token;
+			//	std::string key(token, static_cast<size_t>(len));
+			//	std::string value = _space + 1;
+			//	material.unknown_parameter.insert(
+			//		std::pair<std::string, std::string>(key, value));
+			//}
 		}
 		// flush last material.
 		material_map.insert(std::pair<std::string, int>(material.name, static_cast<int>(materials.size())));
@@ -919,7 +926,7 @@ namespace tinyobj {
 			if (token[0] == '#')
 				continue; // comment line
 
-			  // vertex
+						  // vertex
 			if (token[0] == 'v' && isSpace((token[1]))) {
 				token += 2;
 				float x, y, z;

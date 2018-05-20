@@ -102,6 +102,17 @@ void Mesh::Initialise(std::vector<Chunk>& a_meshChunks, std::vector<Material>& a
 		a_meshChunks.clear();
 		materials.swap(a_materials);
 		a_materials.clear();
+
+		if (materials.size() == 1 && materials[0].diffuseTexture.GetHandle() == 0)
+		{
+			// Create a 2x2 RGB texture
+			unsigned char texelData[16] =
+			{
+				255, 0, 255, 255,	255, 255, 255, 255,
+				255, 255, 255, 255,	255, 0, 255, 255
+			};
+			materials[0].diffuseTexture = Texture::Create(2, 2, Texture::RGBA, texelData);
+		}
 	}
 }
 

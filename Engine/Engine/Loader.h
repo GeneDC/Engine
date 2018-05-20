@@ -16,10 +16,13 @@
 #include "gl_core_4_4.h"
 
 #define TINYOBJLOADER_IMPLEMENTATION
-#pragma warning(push)
-#pragma warning( disable : 4706)
+//#pragma warning(push)
+//#pragma warning( disable : 4706)
 #include "tiny_obj_loader.h"
-#pragma warning(pop)
+//#pragma warning(pop)
+
+#include <fstream>
+#include <cassert>
 
 namespace Loader
 {
@@ -87,7 +90,189 @@ namespace Loader
 
 		delete[] tan1;
 	}
+
+	template<typename T>
+	void SerializeVector(std::ofstream& out, std::vector<T>& vec)
+	{
+		// Make sure the file was opened
+		assert(out.is_open());
+		size_t size = vec.size();
+		// Write the size
+		out.write(reinterpret_cast<char*>(&size), sizeof(size_t));
+		if (size == 0) return; // If the size is 0 don't write anything
+		out.write(reinterpret_cast<char*>(&vec[0]), size * sizeof(T));
+	}
+
+	template<typename T>
+	void DeserializeVector(std::ifstream& in, std::vector<T>& vec)
+	{
+		// Make sure the file was opened
+		assert(in.is_open());
+		size_t size = vec.size();
+		// Read in the size
+		in.read(reinterpret_cast<char*>(&size), sizeof(size_t));
+		if (size == 0) return; // If the size is 0, don't read anything
+		vec.resize(size); // Resize the vec to be read into
+		in.read(reinterpret_cast<char*>(&vec[0]), size * sizeof(T));
+	}
+
+	void SerializeString(std::ofstream& out, std::string& str)
+	{
+		// Make sure the file was opened
+		assert(out.is_open());
+		size_t size = str.size();
+		// Write the size
+		out.write(reinterpret_cast<char*>(&size), sizeof(size_t));
+		if (size == 0) return; // Don't write if the size is 0
+		out.write(reinterpret_cast<char*>(&str[0]), size * sizeof(char));
+	}
+
+	void DeserializeString(std::ifstream& in, std::string& str)
+	{
+		// Make sure the file was opened
+		assert(in.is_open());
+		size_t size = str.size();
+		// Read in the size
+		in.read(reinterpret_cast<char*>(&size), sizeof(size_t));
+		if (size == 0) return; // Don't read if the size is 0
+		str.resize(size); // Resize string to be read into
+		in.read(reinterpret_cast<char*>(&str[0]), size * sizeof(char));
+	}
+
+	void SerializeMaterial_t(std::ofstream& out, tinyobj::material_t& material)
+	{
+		SerializeString(out, material.name);
+		// 18 floats
+		out.write(reinterpret_cast<char*>(&material.ambient[0]), 18 * sizeof(float));
+		// 2 ints
+		out.write(reinterpret_cast<char*>(&material.illum), 2 * sizeof(int));
+		// Strings
+		SerializeString(out, material.ambient_texname);
+		SerializeString(out, material.diffuse_texname);
+		SerializeString(out, material.specular_texname);
+		SerializeString(out, material.specular_highlight_texname);
+		SerializeString(out, material.bump_texname);
+		SerializeString(out, material.displacement_texname);
+		SerializeString(out, material.alpha_texname);
+	}
+
+	void DeserializeMaterial_t(std::ifstream& in, tinyobj::material_t& material)
+	{
+		DeserializeString(in, material.name);
+		// 18 floats
+		in.read(reinterpret_cast<char*>(&material.ambient[0]), 18 * sizeof(float));
+		// 2 ints
+		in.read(reinterpret_cast<char*>(&material.illum), 2 * sizeof(int));
+		// Strings
+		DeserializeString(in, material.ambient_texname);
+		DeserializeString(in, material.diffuse_texname);
+		DeserializeString(in, material.specular_texname);
+		DeserializeString(in, material.specular_highlight_texname);
+		DeserializeString(in, material.bump_texname);
+		DeserializeString(in, material.displacement_texname);
+		DeserializeString(in, material.alpha_texname);
+
+	}
+
+	void SerializeTag_t(std::ofstream& out, tinyobj::tag_t& tag)
+	{
+		SerializeString(out, tag.name);
+		SerializeVector(out, tag.intValues);
+		SerializeVector(out, tag.floatValues);
+		SerializeVector(out, tag.stringValues);
+	}
+
+	void DeserializeTag_t(std::ifstream& in, tinyobj::tag_t& tag)
+	{
+		DeserializeString(in, tag.name);
+		DeserializeVector(in, tag.intValues);
+		DeserializeVector(in, tag.floatValues);
+		DeserializeVector(in, tag.stringValues);
+	}
+
+	void SerializeMesh_t(std::ofstream& out, tinyobj::mesh_t& mesh)
+	{
+		SerializeVector(out, mesh.positions);
+		SerializeVector(out, mesh.normals);
+		SerializeVector(out, mesh.texcoords);
+		SerializeVector(out, mesh.indices);
+		SerializeVector(out, mesh.num_vertices);
+		SerializeVector(out, mesh.material_ids);
+		size_t size = mesh.tags.size();
+		out.write(reinterpret_cast<char*>(&size), sizeof(size_t));
+		if (size == 0) return; // If the size is 0, don't write anything
+		for (auto& t : mesh.tags)
+			SerializeTag_t(out, t);
+		
+	}
+
+	void DeserializeMesh_t(std::ifstream& in, tinyobj::mesh_t& mesh)
+	{
+		DeserializeVector(in, mesh.positions);
+		DeserializeVector(in, mesh.normals);
+		DeserializeVector(in, mesh.texcoords);
+		DeserializeVector(in, mesh.indices);
+		DeserializeVector(in, mesh.num_vertices);
+		DeserializeVector(in, mesh.material_ids);
+		size_t size;
+		// Read in the size of the tags
+		in.read(reinterpret_cast<char*>(&size), sizeof(size_t));
+		if (size == 0) return; // If the size is 0, don't read in anything
+		mesh.tags.resize(size);
+		for (size_t i = 0; i < size; i++)
+			DeserializeTag_t(in, mesh.tags[i]);
+	}
+
+	void SerializeShape_t(std::ofstream& out, tinyobj::shape_t& shape)
+	{
+		SerializeString(out, shape.name);
+		SerializeMesh_t(out, shape.mesh);
+	}
+
+	void DeserializeShape_t(std::ifstream& in, tinyobj::shape_t& shape)
+	{
+		DeserializeString(in, shape.name);
+		DeserializeMesh_t(in, shape.mesh);
+	}
+
+	struct SaveMesh
+	{
+		std::vector<tinyobj::shape_t> loadedChunks;
+		std::vector<tinyobj::material_t> loadedMaterials;
+		std::string folder;
+	};
 	
+	void SerializeSaveMesh(std::ofstream& out, SaveMesh& shape)
+	{
+		size_t size = shape.loadedChunks.size();
+		if (size == 0)
+			return;
+		out.write(reinterpret_cast<char*>(&size), sizeof(size_t));
+		for (auto& c : shape.loadedChunks)
+			SerializeShape_t(out, c);
+		size = shape.loadedMaterials.size();
+		if (size == 0)
+			return;
+		out.write(reinterpret_cast<char*>(&size), sizeof(size_t));
+		for (auto& m : shape.loadedMaterials)
+			SerializeMaterial_t(out, m);
+		SerializeString(out, shape.folder);
+	}
+
+	void DeserializeSaveMesh(std::ifstream& in, SaveMesh& shape)
+	{
+		size_t size;
+		in.read(reinterpret_cast<char*>(&size), sizeof(size_t));
+		shape.loadedChunks.resize(size);
+		for (size_t i = 0; i < size; i++)
+			DeserializeShape_t(in, shape.loadedChunks[i]);
+		in.read(reinterpret_cast<char*>(&size), sizeof(size_t));
+		shape.loadedMaterials.resize(size);
+		for (size_t i = 0; i < size; i++)
+			DeserializeMaterial_t(in, shape.loadedMaterials[i]);
+		DeserializeString(in, shape.folder);
+	}
+
 	static bool LoadOBJ(Mesh& a_mesh, const char* a_path)
 	{
 		bool flipTextureV = true;
@@ -104,12 +289,68 @@ namespace Loader
 		std::string error = "";
 		std::string file = a_path;
 		std::string folder = file.substr(0, file.find_last_of('/') + 1);
-		// Load the obj and make sure it worked
-		if (tinyobj::LoadObj(loadedChunks, loadedMaterials, error, a_path, folder.c_str()) == false)
+
+		//bool hmm = std::is_trivially_copyable<std::vector<int>>();
+
+		bool serializeMesh = true;
+		if (serializeMesh)
 		{
-			printf("%s\n", error.c_str());
-			return false;
+			SaveMesh saveMesh;
+
+			std::ifstream in;
+			std::string saveFile = std::string("./temp/");
+			for (size_t i = file.find_last_of('/') + 1; i < file.find_last_of('.'); i++)
+				saveFile.push_back(file[i]);
+			saveFile.append(".save");
+			in.open(saveFile, std::ios::binary);
+
+			// If the file opened sucessfully, load it in
+			if (in.is_open())
+			{
+				DeserializeSaveMesh(in, saveMesh);
+				in.close();
+
+				// Get the values out if saveMesh
+				loadedChunks.swap(saveMesh.loadedChunks);
+				loadedMaterials.swap(saveMesh.loadedMaterials);
+				folder.swap(saveMesh.folder);
+			}
+			else
+			{
+				in.close();
+
+				// Load the obj and make sure it worked
+				if (tinyobj::LoadObj(loadedChunks, loadedMaterials, error, a_path, folder.c_str()) == false)
+				{
+					printf("%s\n", error.c_str());
+					return false;
+				}
+
+				// Save the obj out to a binary file
+				if (serializeMesh)
+				{
+					saveMesh.loadedChunks = loadedChunks;
+					saveMesh.loadedMaterials = loadedMaterials;
+					saveMesh.folder = folder;
+
+					std::ofstream out;
+					out.open(saveFile, std::ios::binary);
+					assert(out.is_open());
+					SerializeSaveMesh(out, saveMesh);
+					out.close();
+				}
+			}
 		}
+		else
+		{
+			// Load the obj and make sure it worked
+			if (tinyobj::LoadObj(loadedChunks, loadedMaterials, error, a_path, folder.c_str()) == false)
+			{
+				printf("%s\n", error.c_str());
+				return false;
+			}
+		}
+
 
 		// Copy materials
 		std::vector<Material> materials;

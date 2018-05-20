@@ -39,6 +39,8 @@ private:
 	Mesh soulSpear;
 	glm::mat4 modelTransform;
 
+	Mesh dragon;
+
 	struct Light 
 	{
 		glm::vec3 direction;

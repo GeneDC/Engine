@@ -37,7 +37,7 @@ bool Application3D::Startup()
 
 	float aspectRatio = (float)width / (float)height;
 	float viewAngle = glm::pi<float>() * 0.25f;
-	float nearClip = 1.0f;
+	float nearClip = 0.01f;
 	float farClip = 1000.0f;
 	camera.SetProjectionMatrix(glm::perspective(viewAngle, aspectRatio, nearClip, farClip));
 
@@ -61,6 +61,7 @@ bool Application3D::Startup()
 
 	// Make sure the obj loaded correctly
 	assert(Loader::LoadOBJ(soulSpear, "./assets/soulspear/soulspear.obj") == true);
+	assert(Loader::LoadOBJ(dragon, "./assets/stanford/dragon.obj") == true);
 	assert(Loader::LoadOBJ(quadMesh, "./quad.obj") == true);
 
 	//quadMesh.InitialiseQuad();
@@ -75,9 +76,9 @@ bool Application3D::Startup()
 
 	modelTransform = glm::mat4(1);
 
-	light.diffuse = { 1, 1, 0 };
-	light.specular = { 1, 1, 0 };
-	ambientLight = { 1, 1, 1 };
+	light.diffuse = { 10, 10, 8 };
+	light.specular = { 10, 10, 8 };
+	ambientLight = { 10, 10, 10 };
 
 	moveSpeed = 10.0f;
 
@@ -203,7 +204,7 @@ void Application3D::Draw()
 	pvm = camera.GetProjectionMatrix() * camera.GetViewMatrix() * mat;
 	phongShader.bindUniform("ProjectionViewModel", pvm);
 
-	soulSpear.Draw();
+	dragon.Draw();
 
 	//// Bind the transform
 	//pvm = camera.GetProjectionMatrix() * camera.GetViewMatrix() * quadTransform;

@@ -9,14 +9,14 @@
 
 #include <string>
 
-class Material
+struct Material
 {
 public:
 
 	Material() : name(""), ambient(1), diffuse(1), specular(0), transmittance(0)
 		, emission(0), shininess(1), ior(1), dissolve(1), illum(0)
 		{}
-	~Material() {}
+	~Material() = default;
 
 	std::string name;
 
