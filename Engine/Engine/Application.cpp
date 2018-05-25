@@ -3,11 +3,11 @@
 // Make sure you allways include gl core first
 #include <gl_core_4_4.h>
 #include <GLFW\glfw3.h>
-
+// aie
+#include <aie/Input.h>
+#include "imgui_glfw3.h"
 // std
 #include <iostream>
-
-#include <aie/Input.h>
 
 bool Application::Create(const char * title, int a_width, int a_height)
 {
@@ -47,6 +47,9 @@ bool Application::Create(const char * title, int a_width, int a_height)
 	std::cout << "GL: " << major << "." << minor << std::endl;
 
 	aie::Input::create();
+
+	// Initialize imgui
+	aie::ImGui_Init(window, true);
 
 	// Success
 	return true;
@@ -103,10 +106,16 @@ bool Application::Run(const char * title, int a_width, int a_height)
 			fpsInterval -= 1.0f;
 		}
 
+		// Clear imgui
+		aie::ImGui_NewFrame();
+
 		// Call Update
 		Update((float)deltaTime);
 		// Call Draw
 		Draw();
+
+		// Draw IMGUI last
+		ImGui::Render();
 
 		glfwSwapBuffers(window);
 	}
@@ -119,6 +128,7 @@ bool Application::Run(const char * title, int a_width, int a_height)
 
 void Application::Destroy()
 {
+	aie::ImGui_Shutdown();
 	aie::Input::destroy();
 
 	// Destroy the window we created

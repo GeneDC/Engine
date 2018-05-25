@@ -74,26 +74,26 @@
     <IntDir>$(SolutionDir)temp\$(ProjectName)\$(Configuration)\$(Platform)\</IntDir>
     <TargetName>$(ProjectName)_d</TargetName>
     <IncludePath>$(SolutionDir)dependencies\glfw\include;$(SolutionDir)dependencies\glm;$(SolutionDir)dependencies\stb;$(SolutionDir)dependencies\imgui;$(SolutionDir)dependencies\opengl_core;$(SolutionDir)dependencies\aie;$(SolutionDir)dependencies\utilities;$(SolutionDir)dependencies\utilities;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(IncludePath)</IncludePath>
-    <LibraryPath>$(SolutionDir)dependencies\glfw\lib-vc2017;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(SolutionDir)dependencies\glfw\lib-vc2017;$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);$(NETFXKitsDir)Lib\um\x86;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <OutDir>$(SolutionDir)build\$(ProjectName)\$(Configuration)\$(Platform)\</OutDir>
     <IntDir>$(SolutionDir)temp\$(ProjectName)\$(Configuration)\$(Platform)\</IntDir>
     <IncludePath>$(SolutionDir)dependencies\glfw\include;$(SolutionDir)dependencies\glm;$(SolutionDir)dependencies\stb;$(SolutionDir)dependencies\imgui;$(SolutionDir)dependencies\opengl_core;$(SolutionDir)dependencies\aie;$(SolutionDir)dependencies\utilities;$(SolutionDir)dependencies\utilities;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(IncludePath)</IncludePath>
-    <LibraryPath>$(SolutionDir)dependencies\glfw\lib-vc2017;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(SolutionDir)dependencies\glfw\lib-vc2017;$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);$(NETFXKitsDir)Lib\um\x86;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <OutDir>$(SolutionDir)build\$(ProjectName)\$(Configuration)\$(Platform)\</OutDir>
     <IntDir>$(SolutionDir)temp\$(ProjectName)\$(Configuration)\$(Platform)\</IntDir>
     <TargetName>$(ProjectName)_d</TargetName>
     <IncludePath>$(SolutionDir)dependencies\glfw\include;$(SolutionDir)dependencies\glm;$(SolutionDir)dependencies\stb;$(SolutionDir)dependencies\imgui;$(SolutionDir)dependencies\opengl_core;$(SolutionDir)dependencies\aie;$(SolutionDir)dependencies\utilities;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(IncludePath)</IncludePath>
-    <LibraryPath>$(SolutionDir)dependencies\glfw\lib-vc2017\x64;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(SolutionDir)dependencies\glfw\lib-vc2017\x64;$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <OutDir>$(SolutionDir)build\$(ProjectName)\$(Configuration)\$(Platform)\</OutDir>
     <IntDir>$(SolutionDir)temp\$(ProjectName)\$(Configuration)\$(Platform)\</IntDir>
     <IncludePath>$(SolutionDir)dependencies\glfw\include;$(SolutionDir)dependencies\glm;$(SolutionDir)dependencies\stb;$(SolutionDir)dependencies\imgui;$(SolutionDir)dependencies\opengl_core;$(SolutionDir)dependencies\aie;$(SolutionDir)dependencies\utilities;$(VC_IncludePath);$(WindowsSDK_IncludePath);$(IncludePath)</IncludePath>
-    <LibraryPath>$(SolutionDir)dependencies\glfw\lib-vc2017\x64;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(SolutionDir)dependencies\glfw\lib-vc2017\x64;$(VC_LibraryPath_x64);$(WindowsSDK_LibraryPath_x64);$(NETFXKitsDir)Lib\um\x64;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -167,15 +167,22 @@
     <ClCompile Include="..\dependencies\aie\aie\Gizmos.cpp" />
     <ClCompile Include="..\dependencies\aie\aie\Input.cpp" />
     <ClCompile Include="..\dependencies\aie\aie\Shader.cpp" />
+    <ClCompile Include="..\dependencies\imgui\imgui.cpp" />
+    <ClCompile Include="..\dependencies\imgui\imgui_draw.cpp" />
     <ClCompile Include="..\dependencies\opengl_core\gl_core_4_4.c" />
     <ClCompile Include="Application.cpp" />
     <ClCompile Include="Camera.cpp" />
+    <ClCompile Include="imgui_glfw3.cpp" />
     <ClCompile Include="Mesh.cpp" />
     <ClCompile Include="Texture.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\dependencies\imgui\imconfig.h" />
+    <ClInclude Include="..\dependencies\imgui\imgui.h" />
+    <ClInclude Include="..\dependencies\imgui\imgui_internal.h" />
     <ClInclude Include="Application.h" />
     <ClInclude Include="Camera.h" />
+    <ClInclude Include="imgui_glfw3.h" />
     <ClInclude Include="Loader.h" />
     <ClInclude Include="Material.h" />
     <ClInclude Include="Mesh.h" />

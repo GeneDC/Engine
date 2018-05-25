@@ -15,7 +15,7 @@
 #pragma warning(pop)
 
 #include <aie/Input.h>
-
+#include <imgui.h>
 #include <iostream>
 
 using namespace aie;
@@ -150,6 +150,9 @@ void Application3D::Update(const float & a_deltaTime)
 
 void Application3D::Draw()
 {
+	ImGui::Begin("Hello");
+	ImGui::End();
+
 	// Clear gizmos
 	Gizmos::clear();
 
@@ -198,7 +201,7 @@ void Application3D::Draw()
 		1,0,0,0,
 		0,1,0,0,
 		0,0,1,0,
-		10,0,0,1
+		2,0,0,1
 	};
 	pvm = camera.GetProjectionMatrix() * camera.GetViewMatrix() * mat;
 	phongShader.bindUniform("ProjectionViewModel", pvm);
