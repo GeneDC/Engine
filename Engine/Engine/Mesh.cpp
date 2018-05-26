@@ -14,78 +14,149 @@ Mesh::~Mesh()
 	}
 }
 
-void Mesh::Initialise(const unsigned int & vertexCount, const Vertex * verts, const unsigned int & indexCount, const unsigned int * indices)
+void Mesh::Initialise(const unsigned int & vertexCount, const Vertex * verts,
+	const unsigned int & indexCount, const unsigned int * indices)
 {
 	// Insure that this mesh hasn't been initialized yet
 	assert(meshChunks.size() == 0);
 
-	Chunk newChunk;
-
-	newChunk.materialID = 0;
-
-	// Generate buffers
-	glGenBuffers(1, &newChunk.vbo);
-	glGenVertexArrays(1, &newChunk.vao);
-
-	// Bind vertex array aka a mesh wrapper
-	glBindVertexArray(newChunk.vao);
-
-	// Bind vertex buffer
-	glBindBuffer(GL_ARRAY_BUFFER, newChunk.vbo);
-
-	// Fill vertex buffer
-	glBufferData(GL_ARRAY_BUFFER, vertexCount * sizeof(Vertex), verts, GL_STATIC_DRAW);
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), 0);
-
-	// Enable second element as normal
-	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(1, 4, GL_FLOAT, GL_TRUE, sizeof(Vertex), (void*)(sizeof(glm::vec4) * 1));
-
-	// Enable third element as texture
-	glEnableVertexAttribArray(2);
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(sizeof(glm::vec4) * 2));
-
-	// Enable fourth element as tangent
-	glEnableVertexAttribArray(3);
-	glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(sizeof(glm::vec4) * 2 + sizeof(glm::vec2)));
-
-	// Bind indices if there are any
-	if (indexCount != 0)
 	{
-		glGenBuffers(1, &newChunk.ibo);
-		// Bind vertex buffer
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, newChunk.ibo);
-		// Fill vertex buffer
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, indexCount * sizeof(Vertex), indices, GL_STATIC_DRAW);
+		//Chunk newChunk;
+		//newChunk.materialID = 0;
 
-		newChunk.indexCount = indexCount / 3;
+		//// Generate buffers
+		//glGenBuffers(1, &newChunk.vbo);
+		//glGenBuffers(1, &newChunk.ibo);
+		//glGenVertexArrays(1, &newChunk.vao);
+
+		//// Bind vertex array aka a mesh wrapper
+		//glBindVertexArray(newChunk.vao);
+
+		//// Bind vertex buffer
+		//glBindBuffer(GL_ARRAY_BUFFER, newChunk.vbo);
+
+		//// Fill vertex buffer
+		//glBufferData(GL_ARRAY_BUFFER, vertexCount * sizeof(Vertex), verts, GL_STATIC_DRAW);
+		//glEnableVertexAttribArray(0);
+		//glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), 0);
+
+		//// Enable second element as normal
+		//glEnableVertexAttribArray(1);
+		//glVertexAttribPointer(1, 4, GL_FLOAT, GL_TRUE, sizeof(Vertex), (void*)(sizeof(glm::vec4) * 1));
+
+		//// Enable third element as texture
+		//glEnableVertexAttribArray(2);
+		//glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(sizeof(glm::vec4) * 2));
+
+		//// Enable fourth element as tangent
+		//glEnableVertexAttribArray(3);
+		//glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)(sizeof(glm::vec4) * 2 + sizeof(glm::vec2)));
+
+		//// Bind indices if there are any
+		//if (indexCount != 0)
+		//{
+		//	glGenBuffers(1, &newChunk.ibo);
+		//	// Bind vertex buffer
+		//	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, newChunk.ibo);
+		//	// Fill vertex buffer
+		//	glBufferData(GL_ELEMENT_ARRAY_BUFFER, indexCount * sizeof(Vertex), indices, GL_STATIC_DRAW);
+
+		//	newChunk.indexCount = indexCount / 3;
+		//}
+		//else
+		//	newChunk.indexCount = vertexCount / 3;
+
+		//// Unbind buffers
+		//glBindVertexArray(0);
+		//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+		//glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+		//// Set chunk material
+		//newChunk.materialID = 0;
+
+		//// Put the new chunk in the list of chunks
+		//meshChunks.emplace_back(std::move(newChunk));
 	}
-	else
-		newChunk.indexCount = vertexCount / 3;
 
-	// Set chunk material
-	newChunk.materialID = 0;
+	Mesh::Chunk chunk;
 
-	// Put the new chunk in the list of chunks
-	meshChunks.emplace_back(std::move(newChunk));
+	// generate buffers
+	glGenBuffers(1, &chunk.vbo);
+	glGenBuffers(1, &chunk.ibo);
+	glGenVertexArrays(1, &chunk.vao);
 
-	// Unbind buffers
+	// bind vertex array aka a mesh wrapper
+	glBindVertexArray(chunk.vao);
+
+	// set the index buffer data
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, chunk.ibo);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER,
+		indexCount * sizeof(unsigned int),
+		indices, GL_STATIC_DRAW);
+
+	// store index count for rendering
+	chunk.indexCount = (unsigned int)indexCount;
+
+	// create vertex data
+	std::vector<Mesh::Vertex> vertices;
+	vertices.resize(vertexCount);
+
+	for (size_t i = 0; i < vertexCount; ++i)
+	{
+		vertices[i].position = verts[i].position;
+		vertices[i].normal = verts[i].normal;
+		vertices[i].texCoord = verts[i].texCoord;
+		vertices[i].tangent = verts[i].tangent;
+	}
+
+	// bind vertex buffer
+	glBindBuffer(GL_ARRAY_BUFFER, chunk.vbo);
+
+	// fill vertex buffer
+	glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Mesh::Vertex), vertices.data(), GL_STATIC_DRAW);
+
+	// enable first element as positions
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, sizeof(Mesh::Vertex), 0);
+
+	// enable normals
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, 4, GL_FLOAT, GL_TRUE, sizeof(Mesh::Vertex), (void*)(sizeof(glm::vec4) * 1));
+
+	// enable texture coords
+	glEnableVertexAttribArray(2);
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Mesh::Vertex), (void*)(sizeof(glm::vec4) * 2));
+
+	// enable tangents
+	glEnableVertexAttribArray(3);
+	glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(Mesh::Vertex), (void*)(sizeof(glm::vec4) * 2 + sizeof(glm::vec2)));
+
+	// bind 0 for safety
 	glBindVertexArray(0);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+	// set chunk material
+	chunk.materialID = 0;
+
+	//meshChunks.push_back(chunk);
+	meshChunks.emplace_back(std::move(chunk));
 
 	// Create a 2x2 RGB texture
 	unsigned char texelData[16] =
 	{
-		255, 0, 255, 255,	255, 255, 255, 255,
-		255, 255, 255, 255,	255, 0, 255, 255
+		255, 000, 255, 255, 255, 255, 255, 255,
+		255, 255, 255, 255, 255, 000, 255, 255
 	};
 	Material newMat;
 	newMat.name = "default";
+	//newMat.ambient = glm::vec3(0);
+	newMat.shininess = 1;
 	Texture tex = Texture::Create(2, 2, Texture::RGBA, texelData);
 	tex.name = "default";
 	newMat.diffuseTexture = tex;
+	newMat.specularTexture = tex;
+	newMat.normalTexture = tex;
 	materials.emplace_back(std::move(newMat));
 
 }
@@ -114,20 +185,20 @@ void Mesh::Initialise(std::vector<Chunk>& a_meshChunks, std::vector<Material>& a
 			};
 			Texture tex = Texture::Create(2, 2, Texture::RGBA, texelData);
 			materials[0].diffuseTexture = tex;
-			materials[0].normalTexture = tex;
-			materials[0].specularTexture = tex;
+			//materials[0].normalTexture = tex;
+			//materials[0].specularTexture = tex;
 		}
 	}
 }
 
 void Mesh::InitialiseQuad()
 {
-	// Define 6 vertices for 2 tris
-	Vertex verts[6];
-	verts[0].position = { -0.5f, 0, 0.5f, 1.0f };
-	verts[1].position = { 0.5f, 0, 0.5f, 1.0f };
-	verts[2].position = { -0.5f, 0, -0.5f, 1.0f };
-	verts[3].position = { 0.5f, 0, -0.5f, 1.0f };
+	// Define 4 vertices for 2 tris
+	Vertex verts[4];
+	verts[0].position = { -1, 0,  1, 1.0f };
+	verts[1].position = { 1, 0,  1, 1.0f };
+	verts[2].position = { -1, 0, -1, 1.0f };
+	verts[3].position = { 1, 0, -1, 1.0f };
 
 	// Set the texture coords for the Quad
 	verts[0].texCoord = { 0, 1 }; // bottom left
@@ -264,6 +335,7 @@ void Mesh::Draw()
 
 		// Bind and draw geometry
 		glBindVertexArray(chunk.vao);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, chunk.ibo);
 		auto drawType = usePatches ? GL_PATCHES : GL_TRIANGLES;
 		glDrawElements(drawType, chunk.indexCount, GL_UNSIGNED_INT, 0);
 	}

@@ -122,13 +122,16 @@ void ImGui_RenderDrawLists(ImDrawData* draw_data) {
 
 static const char* ImGui_GetClipboardText(void* user_data) {
     return glfwGetClipboardString(g_Window);
-	const char* (*GetClipboardTextFn)(void* user_data);
-	void(*SetClipboardTextFn)(void* user_data, const char* text);
-	void*       ClipboardUserData;
+	//const char* (*GetClipboardTextFn)(void* user_data);
+	//void(*SetClipboardTextFn)(void* user_data, const char* text);
+	//void*       ClipboardUserData;
+	user_data;
 }
 
 static void ImGui_SetClipboardText(void* user_data, const char* text) {
     glfwSetClipboardString(g_Window, text);
+	return;
+	user_data;
 }
 
 void ImGui_MouseButtonCallback(GLFWwindow*, int button, int action, int /*mods*/) {
@@ -329,8 +332,6 @@ bool ImGui_Init(GLFWwindow* window, bool install_callbacks) {
 	glfwGetWindowSize(g_Window, &w, &h);
 	io.DisplaySize.x = (float)w;
 	io.DisplaySize.y = (float)h;
-
-	ImFont* a = (ImGui::GetFont());
 
     return true;
 }

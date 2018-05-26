@@ -94,7 +94,7 @@ bool Application::Run(const char * title, int a_width, int a_height)
 		// Set the clear colour
 		glClearColor(0, 0.1f, 0.1f, 1.0f);
 		// Clear the screen
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		ClearScreen();
 		
 		// Update fps every second
 		frames++;
@@ -135,4 +135,9 @@ void Application::Destroy()
 	glfwDestroyWindow(window);
 	// Clean up glfw
 	glfwTerminate();
+}
+
+void Application::ClearScreen()
+{
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 }

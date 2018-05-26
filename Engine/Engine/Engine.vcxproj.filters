@@ -51,6 +51,9 @@
     <ClCompile Include="imgui_glfw3.cpp">
       <Filter>ImGui</Filter>
     </ClCompile>
+    <ClCompile Include="RenderTarget.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Application.h">
@@ -85,6 +88,9 @@
     </ClInclude>
     <ClInclude Include="imgui_glfw3.h">
       <Filter>ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="RenderTarget.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

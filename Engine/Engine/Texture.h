@@ -21,7 +21,7 @@ public:
 
 	// Creates a texture
 	static Texture Create(const unsigned int& a_width, const unsigned int a_height, 
-		const Format a_format, const unsigned char* pixels);
+		const Format a_format, const unsigned char* pixels = nullptr);
 
 	// Binds the texture to the slot specificed
 	void Bind(const unsigned int& slot) const; 

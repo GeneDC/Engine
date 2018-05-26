@@ -51,7 +51,7 @@ bool Texture::Load(const char * filename, Texture & texture)
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, x, y,
 			0, GL_RGBA, GL_UNSIGNED_BYTE, texture.loadedPixels);
 		break;
-	default:	
+	default:
 		break;
 	};
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -63,7 +63,7 @@ bool Texture::Load(const char * filename, Texture & texture)
 
 	texture.name = filename;
 	texture.name = texture.name.substr(texture.name.find_last_of('/') + 1);
-	
+
 
 	return true;
 }
@@ -77,10 +77,10 @@ Texture Texture::Create(const unsigned int & a_width, const unsigned int a_heigh
 	texture.height = a_height;
 	texture.format = a_format;
 	texture.loadedPixels = new unsigned char[a_width * a_height];
-	for (size_t i = 0; i < a_width * a_height; i++)
-	{
-		texture.loadedPixels[i] = pixels[i];
-	}
+	if (pixels != nullptr)
+		for (size_t i = 0; i < a_width * a_height; i++)
+			texture.loadedPixels[i] = pixels[i];
+
 
 	glGenTextures(1, &texture.glHandle);
 	glBindTexture(GL_TEXTURE_2D, texture.glHandle);

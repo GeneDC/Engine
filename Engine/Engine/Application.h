@@ -34,6 +34,9 @@ protected:
 	// Shuts down the application destroying the necessary things
 	void Destroy();
 
+	// Clears the screen for the next frame to be rendered
+	void ClearScreen();
+
 	// The glfw window for this application
 	GLFWwindow * window;
 

@@ -46,6 +46,8 @@ public:
 
 	bool Empty() const { return meshChunks.size() == 0; }
 
+	std::vector<Material>& GetMaterials() { return materials; }
+
 private:
 	std::string filePath;
 	std::vector<Chunk> meshChunks;

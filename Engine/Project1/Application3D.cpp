@@ -62,15 +62,14 @@ bool Application3D::Startup()
 	// Make sure the obj loaded correctly
 	assert(Loader::LoadOBJ(soulSpear, "./assets/soulspear/soulspear.obj") == true);
 	assert(Loader::LoadOBJ(rock, "./assets/Rock_6/Rock_6.OBJ") == true);
-	//assert(Loader::LoadOBJ(quadMesh, "./quad.obj") == true);
 
 	quadMesh.InitialiseQuad();
 
 	quadTransform = 
 	{
-		10,0,0,0,
-		0,10,0,0,
-		0,0,10,0,
+		5,0,0,0,
+		0,5,0,0,
+		0,0,5,0,
 		0,0,0,1 
 	};
 
@@ -81,9 +80,14 @@ bool Application3D::Startup()
 	ambientLight = { 10, 10, 10 };
 
 	moveSpeed = 10.0f;
-
-	//glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 	
+	// Create the render target and make sure it worked
+	if (renderTarget.Create(1, width,height) == false)
+	{
+		printf("Render Target Error!\n");
+		return false;
+	}
+
 	return true;
 }
 
@@ -153,26 +157,9 @@ void Application3D::Draw()
 	ImGui::Begin("Hello");
 	ImGui::End();
 
-	// Clear gizmos
-	Gizmos::clear();
+	// Bind the render target
+	renderTarget.Bind();
 
-	glm::mat4 tempTransform = camera.GetTransform();
-	tempTransform[3] = { 0, 0, 0, 1 };
-	Gizmos::addTransform(tempTransform, 3.0f);
-
-	glm::vec4 white(0.5f, 0.5f, 0.5f, 1);
-	glm::vec4 black(0.2f, 0.2f, 0.2f, 1);
-	for (int i = 0; i < 21; ++i)
-	{
-		Gizmos::addLine(glm::vec3(-10 + i, 0, 10),
-			glm::vec3(-10 + i, 0, -10),
-			i == 10 ? white : black);
-		Gizmos::addLine(glm::vec3(10, 0, -10 + i),
-			glm::vec3(-10, 0, -10 + i),
-			i == 10 ? white : black);
-	}
-
-	Gizmos::draw(camera.GetProjectionMatrix() * camera.GetViewMatrix());
 	//float elapsedTime = (float)glfwGetTime();
 	//std::cout << elapsedTime << std::endl;
 	//shader.bindUniform("elapsedTime", elapsedTime);
@@ -196,6 +183,11 @@ void Application3D::Draw()
 
 	soulSpear.Draw();
 
+	// Unbind the render target to return to backbuffer
+	renderTarget.Unbind();
+	// Clear the backbuffer
+	ClearScreen();
+
 	glm::mat4 mat = 
 	{
 		1,0,0,0,
@@ -210,10 +202,33 @@ void Application3D::Draw()
 
 	// Bind the transform
 	pvm = camera.GetProjectionMatrix() * camera.GetViewMatrix() * quadTransform;
-	simpleShader.bindUniform("ProjectionViewModel", pvm);
+	phongShader.bindUniform("ProjectionViewModel", pvm);
 
 	//simpleShader.bind();
 
+	quadMesh.GetMaterials()[0].diffuseTexture = renderTarget.GetTarget(0);
+
 	quadMesh.Draw();
+
+	// Clear gizmos
+	Gizmos::clear();
+
+	glm::mat4 tempTransform = camera.GetTransform();
+	tempTransform[3] = { 0, 0, 0, 1 };
+	Gizmos::addTransform(tempTransform, 3.0f);
+
+	glm::vec4 white(0.5f, 0.5f, 0.5f, 1);
+	glm::vec4 black(0.2f, 0.2f, 0.2f, 1);
+	for (int i = 0; i < 21; ++i)
+	{
+		Gizmos::addLine(glm::vec3(-10 + i, 0, 10),
+			glm::vec3(-10 + i, 0, -10),
+			i == 10 ? white : black);
+		Gizmos::addLine(glm::vec3(10, 0, -10 + i),
+			glm::vec3(-10, 0, -10 + i),
+			i == 10 ? white : black);
+	}
+
+	Gizmos::draw(camera.GetProjectionMatrix() * camera.GetViewMatrix());
 
 }

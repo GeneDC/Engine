@@ -3,6 +3,7 @@
 #include "Camera.h"
 #include "Mesh.h"
 #include "Texture.h"
+#include "RenderTarget.h"
 
 #pragma warning(push)
 #pragma warning( disable : 4201)
@@ -48,5 +49,7 @@ private:
 		glm::vec3 specular;
 	};
 	Light light;	glm::vec3 ambientLight;
+
+	RenderTarget renderTarget;
 };
 
