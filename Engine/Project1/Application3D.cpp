@@ -154,15 +154,6 @@ void Application3D::Update(const float & a_deltaTime)
 
 void Application3D::Draw()
 {
-	ImGui::Begin("Hello");
-	ImGui::End();
-
-	// Bind the render target
-	renderTarget.Bind();
-
-	//float elapsedTime = (float)glfwGetTime();
-	//std::cout << elapsedTime << std::endl;
-	//shader.bindUniform("elapsedTime", elapsedTime);
 
 	// bind transforms for lighting
 	phongShader.bindUniform("NormalMatrix",	glm::inverseTranspose(glm::mat3(modelTransform)));
@@ -181,10 +172,15 @@ void Application3D::Draw()
 
 	phongShader.bind();
 
+	// Bind the render target
+	renderTarget.Bind();
+
+	// Draw the spear to the render target
 	soulSpear.Draw();
 
 	// Unbind the render target to return to backbuffer
 	renderTarget.Unbind();
+
 	// Clear the backbuffer
 	ClearScreen();
 
@@ -198,17 +194,28 @@ void Application3D::Draw()
 	pvm = camera.GetProjectionMatrix() * camera.GetViewMatrix() * mat;
 	phongShader.bindUniform("ProjectionViewModel", pvm);
 
+	//rock.GetMaterials()[0].diffuseTexture = renderTarget.GetTarget(0);
 	rock.Draw();
 
 	// Bind the transform
 	pvm = camera.GetProjectionMatrix() * camera.GetViewMatrix() * quadTransform;
 	phongShader.bindUniform("ProjectionViewModel", pvm);
 
-	//simpleShader.bind();
-
 	quadMesh.GetMaterials()[0].diffuseTexture = renderTarget.GetTarget(0);
 
 	quadMesh.Draw();
+
+	ImGui::Begin("Hello");
+	//auto tex = rock.GetMaterials()[0].diffuseTexture.GetHandle();
+	auto tex = renderTarget.GetTarget(0).GetHandle();
+	// Ask ImGui to draw it as an image:
+	// Under OpenGL the ImGUI image type is GLuint
+	// So make sure to use "(void *)tex" but not "&tex"
+	ImGui::GetWindowDrawList()->AddImage(
+		(void *)tex, ImVec2(ImGui::GetItemRectMin().x, ImGui::GetItemRectMin().y),
+		ImVec2((float)(width), (float)(height)), ImVec2(0, 1), ImVec2(1, 0));
+
+	ImGui::End();
 
 	// Clear gizmos
 	Gizmos::clear();

@@ -35,7 +35,7 @@ bool RenderTarget::Create(const unsigned int a_targetCount, const unsigned int a
 
 		for (size_t i = 0; i < targetCount; i++)
 		{
-			targets[i].Create(width, height, Texture::Format::RGBA);
+			targets[i] = Texture::Create(width, height, Texture::Format::RGBA);
 
 			drawBuffers.push_back((GLenum)(GL_COLOR_ATTACHMENT0 + i));
 
