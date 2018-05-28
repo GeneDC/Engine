@@ -152,6 +152,9 @@ void Mesh::Initialise(const unsigned int & vertexCount, const Vertex * verts,
 	newMat.name = "default";
 	//newMat.ambient = glm::vec3(0);
 	newMat.shininess = 1;
+	newMat.ambient = glm::vec3(0);
+	newMat.specular = glm::vec3(0.5f);
+	newMat.diffuse = glm::vec3(0.8f);
 	Texture tex = Texture::Create(2, 2, Texture::RGBA, texelData);
 	tex.name = "default";
 	newMat.diffuseTexture = tex;
@@ -212,10 +215,10 @@ void Mesh::InitialiseQuad()
 	verts[2].normal = { 0, 1, 0, 0 };
 	verts[3].normal = { 0, 1, 0, 0 };
 	// Set the tangent values
-	verts[0].tangent = { 1, 0, 1, 0 };
-	verts[1].tangent = { 1, 0, 1, 0 };
-	verts[2].tangent = { 1, 0, 1, 0 };
-	verts[3].tangent = { 1, 0, 1, 0 };
+	verts[0].tangent = { 1, 0, 0, 0 };
+	verts[1].tangent = { 1, 0, 0, 0 };
+	verts[2].tangent = { 1, 0, 0, 0 };
+	verts[3].tangent = { 1, 0, 0, 0 };
 
 	// Set the indices for the order of the verts to be drawn in
 	unsigned int indices[6] = { 0, 1, 2, 2, 1, 3 };

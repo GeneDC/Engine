@@ -61,7 +61,7 @@ bool Application3D::Startup()
 
 	// Make sure the obj loaded correctly
 	assert(Loader::LoadOBJ(soulSpear, "./assets/soulspear/soulspear.obj") == true);
-	assert(Loader::LoadOBJ(rock, "./assets/Rock_6/Rock_6.OBJ") == true);
+	//assert(Loader::LoadOBJ(rock, "./assets/Rock_6/Rock_6.OBJ") == true);
 
 	quadMesh.InitialiseQuad();
 
@@ -70,10 +70,16 @@ bool Application3D::Startup()
 		5,0,0,0,
 		0,5,0,0,
 		0,0,5,0,
-		0,0,0,1 
+		0,0.01f,0,1 
 	};
 
-	modelTransform = glm::mat4(1);
+	modelTransform = 
+	{
+		1,0,0,0,
+		0,1,0,0,
+		0,0,1,0,
+		2,0,0,1
+	};
 
 	light.diffuse = { 10, 10, 8 };
 	light.specular = { 10, 10, 8 };
@@ -154,27 +160,40 @@ void Application3D::Update(const float & a_deltaTime)
 
 void Application3D::Draw()
 {
+	// Bind the render target
+	renderTarget.Bind();
+	// Make sure you clear screen after you bind the render target
+	ClearScreen();
 
-	// bind transforms for lighting
+	Camera renderTargetCam = camera;
+
+	//renderTargetCam.SetPos({ 0, -10, 0, 1 });
+
+	//auto rot = glm::angleAxis(-glm::pi<float>() / 2.0f, glm::vec3{ 1, 0, 0 });
+	//renderTargetCam.GetTransform() *= glm::mat4_cast(rot);
+
+	//float aspectRatio = (float)width / (float)height;
+	//float viewAngle = glm::pi<float>() * 0.25f;
+	//float nearClip = 0.01f;
+	//float farClip = 1000.0f;
+	//renderTargetCam.SetProjectionMatrix(glm::perspective(viewAngle, aspectRatio, nearClip, farClip));
+
+	// Bind the phong shader
+	phongShader.bind();
+	// Bind transforms for lighting
 	phongShader.bindUniform("NormalMatrix",	glm::inverseTranspose(glm::mat3(modelTransform)));
 
-	// bind light
+	// Bind light
 	phongShader.bindUniform("Ia", ambientLight);
 	phongShader.bindUniform("Id", light.diffuse);
 	phongShader.bindUniform("Is", light.specular);
 	phongShader.bindUniform("LightDirection", light.direction);
 	// Bind the camera position
-	phongShader.bindUniform("cameraPosition", glm::vec3(camera.GetPosition()));
+	phongShader.bindUniform("cameraPosition", glm::vec3(renderTargetCam.GetPosition()));
 
 	// Bind the transform
-	auto pvm = camera.GetProjectionMatrix() * camera.GetViewMatrix() * glm::mat4(1);
+	auto pvm = renderTargetCam.GetProjectionMatrix() * renderTargetCam.GetViewMatrix() * glm::mat4(1);
 	phongShader.bindUniform("ProjectionViewModel", pvm);
-
-	phongShader.bind();
-
-	// Bind the render target
-	renderTarget.Bind();
-
 	// Draw the spear to the render target
 	soulSpear.Draw();
 
@@ -184,58 +203,74 @@ void Application3D::Draw()
 	// Clear the backbuffer
 	ClearScreen();
 
-	glm::mat4 mat = 
-	{
-		1,0,0,0,
-		0,1,0,0,
-		0,0,1,0,
-		2,0,0,1
-	};
-	pvm = camera.GetProjectionMatrix() * camera.GetViewMatrix() * mat;
-	phongShader.bindUniform("ProjectionViewModel", pvm);
+	// Bind the camera position
+	phongShader.bindUniform("cameraPosition", glm::vec3(camera.GetPosition()));
 
+	// Bind the transform
+	pvm = camera.GetProjectionMatrix() * camera.GetViewMatrix() * modelTransform;
+	phongShader.bindUniform("ProjectionViewModel", pvm);
+	soulSpear.Draw();
+
+	//glm::mat4 mat = 
+	//{
+	//	1,0,0,0,
+	//	0,1,0,0,
+	//	0,0,1,0,
+	//	2,0,0,1
+	//};
+	//pvm = camera.GetProjectionMatrix() * camera.GetViewMatrix() * mat;
+	//phongShader.bindUniform("ProjectionViewModel", pvm);
+	//
 	//rock.GetMaterials()[0].diffuseTexture = renderTarget.GetTarget(0);
-	rock.Draw();
+	//rock.Draw();
+	
+	//quadMesh.GetMaterials()[0] = soulSpear.GetMaterials()[0];
+	//quadMesh.GetMaterials()[0].diffuseTexture = renderTarget.GetTarget(0);
+
+	// Now use the simple shader
+	simpleShader.bind();
 
 	// Bind the transform
 	pvm = camera.GetProjectionMatrix() * camera.GetViewMatrix() * quadTransform;
-	phongShader.bindUniform("ProjectionViewModel", pvm);
+	simpleShader.bindUniform("ProjectionViewModel", pvm);
 
 	quadMesh.GetMaterials()[0].diffuseTexture = renderTarget.GetTarget(0);
 
 	quadMesh.Draw();
 
-	ImGui::Begin("Hello");
-	//auto tex = rock.GetMaterials()[0].diffuseTexture.GetHandle();
-	auto tex = renderTarget.GetTarget(0).GetHandle();
-	// Ask ImGui to draw it as an image:
-	// Under OpenGL the ImGUI image type is GLuint
-	// So make sure to use "(void *)tex" but not "&tex"
-	ImGui::GetWindowDrawList()->AddImage(
-		(void *)tex, ImVec2(ImGui::GetItemRectMin().x, ImGui::GetItemRectMin().y),
-		ImVec2((float)(width), (float)(height)), ImVec2(0, 1), ImVec2(1, 0));
+	//ImGui::Begin("Hello");
+	////auto tex = soulSpear.GetMaterials()[0].diffuseTexture.GetHandle();
+	//auto tex = renderTarget.GetTarget(0).GetHandle();
+	//// Ask ImGui to draw it as an image:
+	//// Under OpenGL the ImGUI image type is GLuint
+	//// So make sure to use "(void *)tex" but not "&tex"
+	//ImGui::GetWindowDrawList()->AddImage(
+	//	(void *)tex, ImVec2(ImGui::GetItemRectMin().x, ImGui::GetItemRectMin().y),
+	//	ImVec2((float)(width), (float)(height)), ImVec2(0, 1), ImVec2(1, 0));
+	//
+	//ImGui::End();
 
-	ImGui::End();
+	// Gizmos stuff
+	{ 
+		// Clear gizmos
+		Gizmos::clear();
 
-	// Clear gizmos
-	Gizmos::clear();
+		glm::mat4 tempTransform = camera.GetTransform();
+		tempTransform[3] = { 0, 0, 0, 1 };
+		Gizmos::addTransform(tempTransform, 3.0f);
 
-	glm::mat4 tempTransform = camera.GetTransform();
-	tempTransform[3] = { 0, 0, 0, 1 };
-	Gizmos::addTransform(tempTransform, 3.0f);
+		glm::vec4 white(0.5f, 0.5f, 0.5f, 1);
+		glm::vec4 black(0.2f, 0.2f, 0.2f, 1);
+		for (int i = 0; i < 21; ++i)
+		{
+			Gizmos::addLine(glm::vec3(-10 + i, 0, 10),
+				glm::vec3(-10 + i, 0, -10),
+				i == 10 ? white : black);
+			Gizmos::addLine(glm::vec3(10, 0, -10 + i),
+				glm::vec3(-10, 0, -10 + i),
+				i == 10 ? white : black);
+		}
 
-	glm::vec4 white(0.5f, 0.5f, 0.5f, 1);
-	glm::vec4 black(0.2f, 0.2f, 0.2f, 1);
-	for (int i = 0; i < 21; ++i)
-	{
-		Gizmos::addLine(glm::vec3(-10 + i, 0, 10),
-			glm::vec3(-10 + i, 0, -10),
-			i == 10 ? white : black);
-		Gizmos::addLine(glm::vec3(10, 0, -10 + i),
-			glm::vec3(-10, 0, -10 + i),
-			i == 10 ? white : black);
+		Gizmos::draw(camera.GetProjectionMatrix() * camera.GetViewMatrix());
 	}
-
-	Gizmos::draw(camera.GetProjectionMatrix() * camera.GetViewMatrix());
-
 }
