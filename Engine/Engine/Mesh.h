@@ -41,6 +41,8 @@ public:
 
 	// Make this mesh a quad
 	void InitialiseQuad();
+	// Creates a quad that covers the screen
+	void InitialiseFullscreenQuad();
 	// Draw this mesh
 	virtual void Draw();
 

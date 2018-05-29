@@ -92,7 +92,15 @@ bool Application3D::Startup()
 	{
 		printf("Render Target Error!\n");
 		return false;
-	}
+	}	fullScreenQuad.InitialiseFullscreenQuad();
+	postShader.loadShader(aie::eShaderStage::VERTEX, "./shaders/simplePost.vert");
+	postShader.loadShader(aie::eShaderStage::FRAGMENT, "./shaders/simplePost.frag");
+	// Check if the shader loaded correctly
+	if (postShader.link() == false)
+	{
+		std::cout << "Shader Error: " << postShader.getLastError() << std::endl;
+		return false;
+	}
 
 	return true;
 }
@@ -165,19 +173,6 @@ void Application3D::Draw()
 	// Make sure you clear screen after you bind the render target
 	ClearScreen();
 
-	Camera renderTargetCam = camera;
-
-	//renderTargetCam.SetPos({ 0, -10, 0, 1 });
-
-	//auto rot = glm::angleAxis(-glm::pi<float>() / 2.0f, glm::vec3{ 1, 0, 0 });
-	//renderTargetCam.GetTransform() *= glm::mat4_cast(rot);
-
-	//float aspectRatio = (float)width / (float)height;
-	//float viewAngle = glm::pi<float>() * 0.25f;
-	//float nearClip = 0.01f;
-	//float farClip = 1000.0f;
-	//renderTargetCam.SetProjectionMatrix(glm::perspective(viewAngle, aspectRatio, nearClip, farClip));
-
 	// Bind the phong shader
 	phongShader.bind();
 	// Bind transforms for lighting
@@ -189,19 +184,13 @@ void Application3D::Draw()
 	phongShader.bindUniform("Is", light.specular);
 	phongShader.bindUniform("LightDirection", light.direction);
 	// Bind the camera position
-	phongShader.bindUniform("cameraPosition", glm::vec3(renderTargetCam.GetPosition()));
+	phongShader.bindUniform("cameraPosition", glm::vec3(camera.GetPosition()));
 
 	// Bind the transform
-	auto pvm = renderTargetCam.GetProjectionMatrix() * renderTargetCam.GetViewMatrix() * glm::mat4(1);
+	auto pvm = camera.GetProjectionMatrix() * camera.GetViewMatrix() * glm::mat4(1);
 	phongShader.bindUniform("ProjectionViewModel", pvm);
 	// Draw the spear to the render target
 	soulSpear.Draw();
-
-	// Unbind the render target to return to backbuffer
-	renderTarget.Unbind();
-
-	// Clear the backbuffer
-	ClearScreen();
 
 	// Bind the camera position
 	phongShader.bindUniform("cameraPosition", glm::vec3(camera.GetPosition()));
@@ -210,6 +199,11 @@ void Application3D::Draw()
 	pvm = camera.GetProjectionMatrix() * camera.GetViewMatrix() * modelTransform;
 	phongShader.bindUniform("ProjectionViewModel", pvm);
 	soulSpear.Draw();
+
+	// Unbind the render target to return to backbuffer
+	renderTarget.Unbind();
+	// Clear the backbuffer after unbinding the shader
+	ClearScreen();
 
 	//glm::mat4 mat = 
 	//{
@@ -224,7 +218,7 @@ void Application3D::Draw()
 	//rock.GetMaterials()[0].diffuseTexture = renderTarget.GetTarget(0);
 	//rock.Draw();
 	
-	//quadMesh.GetMaterials()[0] = soulSpear.GetMaterials()[0];
+	quadMesh.GetMaterials()[0] = soulSpear.GetMaterials()[0];
 	//quadMesh.GetMaterials()[0].diffuseTexture = renderTarget.GetTarget(0);
 
 	// Now use the simple shader
@@ -234,21 +228,7 @@ void Application3D::Draw()
 	pvm = camera.GetProjectionMatrix() * camera.GetViewMatrix() * quadTransform;
 	simpleShader.bindUniform("ProjectionViewModel", pvm);
 
-	quadMesh.GetMaterials()[0].diffuseTexture = renderTarget.GetTarget(0);
-
 	quadMesh.Draw();
-
-	//ImGui::Begin("Hello");
-	////auto tex = soulSpear.GetMaterials()[0].diffuseTexture.GetHandle();
-	//auto tex = renderTarget.GetTarget(0).GetHandle();
-	//// Ask ImGui to draw it as an image:
-	//// Under OpenGL the ImGUI image type is GLuint
-	//// So make sure to use "(void *)tex" but not "&tex"
-	//ImGui::GetWindowDrawList()->AddImage(
-	//	(void *)tex, ImVec2(ImGui::GetItemRectMin().x, ImGui::GetItemRectMin().y),
-	//	ImVec2((float)(width), (float)(height)), ImVec2(0, 1), ImVec2(1, 0));
-	//
-	//ImGui::End();
 
 	// Gizmos stuff
 	{ 
@@ -273,4 +253,27 @@ void Application3D::Draw()
 
 		Gizmos::draw(camera.GetProjectionMatrix() * camera.GetViewMatrix());
 	}
+
+
+	// Start post processing
+	// Bind post shader
+	postShader.bind();
+	//postShader.bindUniform("colourTarget", 0);
+	//fullScreenQuad.GetMaterials()[0].diffuseTexture = renderTarget.GetTarget(0);
+	fullScreenQuad.GetMaterials()[0].diffuseTexture = soulSpear.GetMaterials()[0].diffuseTexture;
+	//renderTarget.GetTarget(0).Bind(0);
+	fullScreenQuad.Draw();
+
+	//ImGui::Begin("Hello");
+	////auto tex = soulSpear.GetMaterials()[0].diffuseTexture.GetHandle();
+	//auto tex = renderTarget.GetTarget(0).GetHandle();
+	//// Ask ImGui to draw it as an image:
+	//// Under OpenGL the ImGUI image type is GLuint
+	//// So make sure to use "(void *)tex" but not "&tex"
+	//ImGui::GetWindowDrawList()->AddImage(
+	//	(void *)tex, ImVec2(ImGui::GetItemRectMin().x, ImGui::GetItemRectMin().y),
+	//	ImVec2((float)(width), (float)(height)), ImVec2(0, 1), ImVec2(1, 0));
+	//
+	//ImGui::End();
+
 }

@@ -51,5 +51,9 @@ private:
 	Light light;	glm::vec3 ambientLight;
 
 	RenderTarget renderTarget;
+
+	Mesh fullScreenQuad;
+
+	aie::ShaderProgram postShader;
 };
 

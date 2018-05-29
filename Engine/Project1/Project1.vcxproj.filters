@@ -43,5 +43,11 @@
     <None Include="..\bin\shaders\simpleTexture.vert">
       <Filter>Shaders</Filter>
     </None>
+    <None Include="..\bin\shaders\simplePost.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\bin\shaders\simplePost.vert">
+      <Filter>Shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

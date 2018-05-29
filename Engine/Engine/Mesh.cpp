@@ -226,6 +226,24 @@ void Mesh::InitialiseQuad()
 	Initialise(4, verts, 6, indices);
 }
 
+void Mesh::InitialiseFullscreenQuad()
+{
+	// Insure that this mesh hasn't been initialized yet
+	assert(meshChunks.size() == 0);
+
+	// Define 4 vertices for 2 tris
+	Vertex verts[4];
+	verts[0].position = { -1,  1, 0, 1.0f };
+	verts[1].position = {  1,  1, 0, 1.0f };
+	verts[2].position = { -1, -1, 0, 1.0f };
+	verts[3].position = {  1, -1, 0, 1.0f };
+
+	// Set the indices for the order of the verts to be drawn in
+	unsigned int indices[6] = { 0, 1, 2, 2, 1, 3 };
+
+	Initialise(4, verts, 6, indices);
+}
+
 void Mesh::Draw()
 {
 	bool usePatches = false;

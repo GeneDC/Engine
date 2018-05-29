@@ -167,6 +167,8 @@
   <ItemGroup>
     <None Include="..\bin\shaders\phong.frag" />
     <None Include="..\bin\shaders\phong.vert" />
+    <None Include="..\bin\shaders\simplePost.frag" />
+    <None Include="..\bin\shaders\simplePost.vert" />
     <None Include="..\bin\shaders\simpleTexture.frag" />
     <None Include="..\bin\shaders\simpleTexture.vert" />
   </ItemGroup>
