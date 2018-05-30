@@ -60,7 +60,7 @@ bool Application3D::Startup()
 	}
 
 	// Make sure the obj loaded correctly
-	assert(Loader::LoadOBJ(soulSpear, "./assets/soulspear/soulspear.obj") == true);
+	assert(Loader::LoadOBJ(soulSpear, "./assets/assets/soulspear.obj") == true);
 	//assert(Loader::LoadOBJ(rock, "./assets/Rock_6/Rock_6.OBJ") == true);
 
 	quadMesh.InitialiseQuad();
@@ -83,7 +83,7 @@ bool Application3D::Startup()
 
 	light.diffuse = { 10, 10, 8 };
 	light.specular = { 10, 10, 8 };
-	ambientLight = { 10, 10, 10 };
+	ambientLight = { 1, 1, .8f };
 
 	moveSpeed = 10.0f;
 	
@@ -200,10 +200,6 @@ void Application3D::Draw()
 	phongShader.bindUniform("ProjectionViewModel", pvm);
 	soulSpear.Draw();
 
-	// Unbind the render target to return to backbuffer
-	renderTarget.Unbind();
-	// Clear the backbuffer after unbinding the shader
-	ClearScreen();
 
 	//glm::mat4 mat = 
 	//{
@@ -254,13 +250,21 @@ void Application3D::Draw()
 		Gizmos::draw(camera.GetProjectionMatrix() * camera.GetViewMatrix());
 	}
 
+	// Unbind the render target to return to backbuffer
+	renderTarget.Unbind();
+	// Clear the backbuffer after unbinding the shader
+	ClearScreen();
 
 	// Start post processing
 	// Bind post shader
 	postShader.bind();
+
+	//pvm = camera.GetProjectionMatrix() * camera.GetViewMatrix() * glm::mat4(1);
+	//postShader.bindUniform("ProjectionViewModel", pvm);
+
 	//postShader.bindUniform("colourTarget", 0);
-	//fullScreenQuad.GetMaterials()[0].diffuseTexture = renderTarget.GetTarget(0);
-	fullScreenQuad.GetMaterials()[0].diffuseTexture = soulSpear.GetMaterials()[0].diffuseTexture;
+	fullScreenQuad.GetMaterials()[0].diffuseTexture = renderTarget.GetTarget(0);
+	//fullScreenQuad.GetMaterials()[0].diffuseTexture = soulSpear.GetMaterials()[0].diffuseTexture;
 	//renderTarget.GetTarget(0).Bind(0);
 	fullScreenQuad.Draw();
 

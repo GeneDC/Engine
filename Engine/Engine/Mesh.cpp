@@ -239,7 +239,7 @@ void Mesh::InitialiseFullscreenQuad()
 	verts[3].position = {  1, -1, 0, 1.0f };
 
 	// Set the indices for the order of the verts to be drawn in
-	unsigned int indices[6] = { 0, 1, 2, 2, 1, 3 };
+	unsigned int indices[6] = { 2, 1, 0, 3, 1, 2 };
 
 	Initialise(4, verts, 6, indices);
 }

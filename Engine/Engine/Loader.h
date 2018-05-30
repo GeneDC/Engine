@@ -201,7 +201,7 @@ namespace Loader
 		if (size == 0) return; // If the size is 0, don't write anything
 		for (auto& t : mesh.tags)
 			SerializeTag_t(out, t);
-		
+
 	}
 
 	void DeserializeMesh_t(std::ifstream& in, tinyobj::mesh_t& mesh)
@@ -254,10 +254,10 @@ namespace Loader
 		std::vector<tinyobj::material_t> loadedMaterials;
 		std::string folder;
 	};
-	
+
 	void SerializeSaveMesh(std::ofstream& out, SaveMesh& shape)
 	{
-	
+		SerializeAttrib_t(out, shape.attrib);
 		size_t size = shape.loadedChunks.size();
 		if (size == 0)
 			return;
@@ -275,7 +275,7 @@ namespace Loader
 
 	void DeserializeSaveMesh(std::ifstream& in, SaveMesh& shape)
 	{
-		
+		DeserializeAttrib_t(in, shape.attrib);
 		size_t size;
 		in.read(reinterpret_cast<char*>(&size), sizeof(size_t));
 		shape.loadedChunks.resize(size);
@@ -306,9 +306,7 @@ namespace Loader
 		std::string file = a_path;
 		std::string folder = file.substr(0, file.find_last_of('/') + 1);
 
-		//bool hmm = std::is_trivially_copyable<std::vector<int>>();
-
-		bool serializeMesh = false;
+		bool serializeMesh = true;
 		if (serializeMesh)
 		{
 			SaveMesh saveMesh;
@@ -327,6 +325,7 @@ namespace Loader
 				in.close();
 
 				// Get the values out if saveMesh
+				attrib = std::move(saveMesh.attrib);
 				loadedChunks.swap(saveMesh.loadedChunks);
 				loadedMaterials.swap(saveMesh.loadedMaterials);
 				folder.swap(saveMesh.folder);
@@ -335,37 +334,35 @@ namespace Loader
 			{
 				in.close();
 				// Load the obj and make sure it worked
-				if (tinyobj::LoadObj(&attrib, &loadedChunks, &loadedMaterials, &error, a_path) == false)
+				if (tinyobj::LoadObj(&attrib, &loadedChunks, &loadedMaterials, &error, a_path, folder.data()) == false)
 				{
 					printf("%s\n", error.c_str());
 					return false;
 				}
 
 				// Save the obj out to a binary file
-				if (serializeMesh)
-				{
-					saveMesh.loadedChunks = loadedChunks;
-					saveMesh.loadedMaterials = loadedMaterials;
-					saveMesh.folder = folder;
+				saveMesh.attrib = attrib;
+				saveMesh.loadedChunks = loadedChunks;
+				saveMesh.loadedMaterials = loadedMaterials;
+				saveMesh.folder = folder;
 
-					std::ofstream out;
-					out.open(saveFile, std::ios::binary);
-					assert(out.is_open());
-					SerializeSaveMesh(out, saveMesh);
-					out.close();
-				}
+				std::ofstream out;
+				out.open(saveFile, std::ios::binary);
+				assert(out.is_open());
+				SerializeSaveMesh(out, saveMesh);
+				out.close();
+
 			}
 		}
 		else
 		{
 			// Load the obj and make sure it worked
-			if (tinyobj::LoadObj(&attrib, &loadedChunks, &loadedMaterials, &error, a_path) == false)
+			if (tinyobj::LoadObj(&attrib, &loadedChunks, &loadedMaterials, &error, a_path, folder.data()) == false)
 			{
 				printf("%s\n", error.c_str());
 				return false;
 			}
 		}
-
 
 		// Copy materials
 		std::vector<Material> materials;
@@ -386,154 +383,157 @@ namespace Loader
 			materials[index].illum = m.illum;
 
 			// Load in all the textures
-			assert(m.alpha_texname.size() == 0				|| Texture::Load((folder + m.alpha_texname).c_str(),				materials[index].alphaTexture));
-			assert(m.ambient_texname.size() == 0			|| Texture::Load((folder + m.ambient_texname).c_str(),				materials[index].ambientTexture));
-			assert(m.diffuse_texname.size() == 0			|| Texture::Load((folder + m.diffuse_texname).c_str(),				materials[index].diffuseTexture));
-			assert(m.specular_texname.size() == 0			|| Texture::Load((folder + m.specular_texname).c_str(),				materials[index].specularTexture));
-			assert(m.specular_highlight_texname.size() == 0 || Texture::Load((folder + m.specular_highlight_texname).c_str(),	materials[index].specularHighlightTexture));
-			assert(m.bump_texname.size() == 0				|| Texture::Load((folder + m.bump_texname).c_str(),					materials[index].normalTexture));
-			assert(m.displacement_texname.size() == 0		|| Texture::Load((folder + m.displacement_texname).c_str(),			materials[index].displacementTexture));
+			assert(m.alpha_texname.size() == 0 || Texture::Load((folder + m.alpha_texname).c_str(), materials[index].alphaTexture));
+			assert(m.ambient_texname.size() == 0 || Texture::Load((folder + m.ambient_texname).c_str(), materials[index].ambientTexture));
+			assert(m.diffuse_texname.size() == 0 || Texture::Load((folder + m.diffuse_texname).c_str(), materials[index].diffuseTexture));
+			assert(m.specular_texname.size() == 0 || Texture::Load((folder + m.specular_texname).c_str(), materials[index].specularTexture));
+			assert(m.specular_highlight_texname.size() == 0 || Texture::Load((folder + m.specular_highlight_texname).c_str(), materials[index].specularHighlightTexture));
+			assert(m.bump_texname.size() == 0 || Texture::Load((folder + m.bump_texname).c_str(), materials[index].normalTexture));
+			assert(m.displacement_texname.size() == 0 || Texture::Load((folder + m.displacement_texname).c_str(), materials[index].displacementTexture));
 
 			++index;
 		}
 
-		for (size_t meshID = 0; meshID < loadedChunks.size(); ++meshID)
+		// Copy mesh chunks
+		std::vector<Mesh::Chunk> meshChunks;
+		meshChunks.reserve(loadedChunks.size());
+		for (auto& loadedChunk : loadedChunks)
 		{
+			Mesh::Chunk chunk;
 
-			auto& shape = loadedChunks[meshID];
+			// generate buffers
+			glGenBuffers(1, &chunk.vbo);
+			glGenBuffers(1, &chunk.ibo);
+			glGenVertexArrays(1, &chunk.vao);
+
+			// bind vertex array aka a mesh wrapper
+			glBindVertexArray(chunk.vao);
+
+			// store index count for rendering
+			chunk.indexCount = (unsigned int)loadedChunk.mesh.indices.size();
+
 			size_t indexOffset = 0;
 
 			std::vector<glm::vec4> positions;
 			std::vector<glm::vec3> normals;
-			std::vector<glm::vec2> uvs;
+			std::vector<glm::vec2> texCoords;
 
-			for (size_t i = 0; i < shape.mesh.num_face_vertices.size(); ++i)
+			for (size_t i = 0; i < loadedChunk.mesh.num_face_vertices.size(); ++i)
 			{
-				size_t fv = shape.mesh.num_face_vertices[i];
+				size_t fv = loadedChunk.mesh.num_face_vertices[i];
 				for (size_t v = 0; v < fv; ++v)
 				{
-					auto idx = shape.mesh.indices[indexOffset + v];
+					auto idx = loadedChunk.mesh.indices[indexOffset + v];
 					if (idx.vertex_index != -1)
 					{
 						positions.push_back(
-							{ 
+							{
 							attrib.vertices[3 * idx.vertex_index + 0],
 							attrib.vertices[3 * idx.vertex_index + 1],
 							attrib.vertices[3 * idx.vertex_index + 2],
-							1 
+							1
 							});
 					}
 
 					if (idx.normal_index != -1)
 					{
 						normals.push_back(
-							{ 
-								attrib.normals[3 * idx.normal_index + 0],
-								attrib.normals[3 * idx.normal_index + 1],
-								attrib.normals[3 * idx.normal_index + 2] 
+							{
+							attrib.normals[3 * idx.normal_index + 0],
+							attrib.normals[3 * idx.normal_index + 1],
+							attrib.normals[3 * idx.normal_index + 2]
 							});
 					}
 					if (idx.texcoord_index != -1)
 					{
-						uvs.push_back(
-							{ 
-							attrib.texcoords[3 * idx.texcoord_index + 0],
-							attrib.texcoords[3 * idx.texcoord_index + 1]
+
+						texCoords.push_back(
+							{
+							attrib.texcoords[2 * idx.texcoord_index + 0],
+							attrib.texcoords[2 * idx.texcoord_index + 1]
 							});
 					}
 				}
 				indexOffset += fv;
 			}
 
+			bool hasPosition = positions.empty() == false;
+			bool hasNormal = normals.empty() == false;
+			bool hasTexture = texCoords.empty() == false;
 
+			std::vector<Mesh::Vertex> vertices;
+			vertices.resize(positions.size());
+			//size_t vertCount = vertices.size();
+
+			for (int i = 0; i < positions.size(); ++i)
+			{
+				if (hasPosition)
+					vertices[i].position = positions[i];
+				if (hasNormal)
+					vertices[i].normal = glm::vec4(normals[i], 0);
+				if (hasTexture)
+				{
+					vertices[i].texCoord = texCoords[i];
+					// flip the T / V (might not always be needed, depends on how mesh was made)
+					if (flipTextureV)
+						vertices[i].texCoord.y = 1.0f - texCoords[i].y;
+				}
+
+			}
+
+			std::vector<unsigned int> indices;
+			indices.resize(positions.size());
+			for (int i = 0; i < indices.size(); ++i)
+			{
+				indices[i] = i;
+			}
+
+			// set the index buffer data
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, chunk.ibo);
+			glBufferData(GL_ELEMENT_ARRAY_BUFFER,
+				indices.size() * sizeof(unsigned int),
+				indices.data(), GL_STATIC_DRAW);
+
+			// calculate for normal mapping
+			if (hasNormal && hasTexture)
+				CalculateTangents(vertices, indices);
+
+			// bind vertex buffer
+			glBindBuffer(GL_ARRAY_BUFFER, chunk.vbo);
+
+			// fill vertex buffer
+			glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Mesh::Vertex), vertices.data(), GL_STATIC_DRAW);
+
+			// enable first element as positions
+			glEnableVertexAttribArray(0);
+			glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, sizeof(Mesh::Vertex), 0);
+
+			// enable normals
+			glEnableVertexAttribArray(1);
+			glVertexAttribPointer(1, 4, GL_FLOAT, GL_TRUE, sizeof(Mesh::Vertex), (void*)(sizeof(glm::vec4) * 1));
+
+			// enable texture coords
+			glEnableVertexAttribArray(2);
+			glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Mesh::Vertex), (void*)(sizeof(glm::vec4) * 2));
+
+			// enable tangents
+			glEnableVertexAttribArray(3);
+			glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(Mesh::Vertex), (void*)(sizeof(glm::vec4) * 2 + sizeof(glm::vec2)));
+
+			// bind 0 for safety
+			glBindVertexArray(0);
+			glBindBuffer(GL_ARRAY_BUFFER, 0);
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+			// set chunk material
+			chunk.materialID = loadedChunk.mesh.material_ids.empty() ? -1 : loadedChunk.mesh.material_ids[0];
+
+			//meshChunks.push_back(chunk);
+			meshChunks.emplace_back(std::move(chunk));
 		}
 
-
-		//// Copy mesh chunks
-		//std::vector<Mesh::Chunk> meshChunks;
-		//meshChunks.reserve(loadedChunks.size());
-		//for (auto& loadedChunk : loadedChunks)
-		//{
-		//	Mesh::Chunk chunk;
-
-		//	// generate buffers
-		//	glGenBuffers(1, &chunk.vbo);
-		//	glGenBuffers(1, &chunk.ibo);
-		//	glGenVertexArrays(1, &chunk.vao);
-
-		//	// bind vertex array aka a mesh wrapper
-		//	glBindVertexArray(chunk.vao);
-
-		//	// set the index buffer data
-		//	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, chunk.ibo);
-		//	glBufferData(GL_ELEMENT_ARRAY_BUFFER,
-		//		loadedChunk.mesh.indices.size() * sizeof(unsigned int),
-		//		loadedChunk.mesh.indices.data(), GL_STATIC_DRAW);
-
-		//	// store index count for rendering
-		//	chunk.indexCount = (unsigned int)loadedChunk.mesh.indices.size();
-
-		//	// create vertex data
-		//	std::vector<Mesh::Vertex> vertices;
-		//	vertices.resize(loadedChunk.mesh.indices.size() / 3);
-		//	size_t vertCount = vertices.size();
-
-		//	bool hasPosition = loadedChunk.mesh.positions.empty() == false;
-		//	bool hasNormal = loadedChunk.mesh.normals.empty() == false;
-		//	bool hasTexture = loadedChunk.mesh.texcoords.empty() == false;
-
-		//	for (size_t i = 0; i < vertCount; ++i)
-		//	{
-		//		if (hasPosition)
-		//			vertices[i].position = glm::vec4(loadedChunk.mesh.positions[i * 3 + 0], loadedChunk.mesh.positions[i * 3 + 1], loadedChunk.mesh.positions[i * 3 + 2], 1);
-		//		if (hasNormal)
-		//			vertices[i].normal = glm::vec4(loadedChunk.mesh.normals[i * 3 + 0], loadedChunk.mesh.normals[i * 3 + 1], loadedChunk.mesh.normals[i * 3 + 2], 0);
-
-		//		// flip the T / V (might not always be needed, depends on how mesh was made)
-		//		if (hasTexture)
-		//			vertices[i].texCoord = glm::vec2(loadedChunk.mesh.texcoords[i * 2 + 0], flipTextureV ? 1.0f - loadedChunk.mesh.texcoords[i * 2 + 1] : loadedChunk.mesh.texcoords[i * 2 + 1]);
-		//	}
-
-		//	// calculate for normal mapping
-		//	if (hasNormal && hasTexture)
-		//		CalculateTangents(vertices, loadedChunk.mesh.indices);
-
-		//	// bind vertex buffer
-		//	glBindBuffer(GL_ARRAY_BUFFER, chunk.vbo);
-
-		//	// fill vertex buffer
-		//	glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Mesh::Vertex), vertices.data(), GL_STATIC_DRAW);
-
-		//	// enable first element as positions
-		//	glEnableVertexAttribArray(0);
-		//	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, sizeof(Mesh::Vertex), 0);
-
-		//	// enable normals
-		//	glEnableVertexAttribArray(1);
-		//	glVertexAttribPointer(1, 4, GL_FLOAT, GL_TRUE, sizeof(Mesh::Vertex), (void*)(sizeof(glm::vec4) * 1));
-
-		//	// enable texture coords
-		//	glEnableVertexAttribArray(2);
-		//	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(Mesh::Vertex), (void*)(sizeof(glm::vec4) * 2));
-
-		//	// enable tangents
-		//	glEnableVertexAttribArray(3);
-		//	glVertexAttribPointer(3, 4, GL_FLOAT, GL_FALSE, sizeof(Mesh::Vertex), (void*)(sizeof(glm::vec4) * 2 + sizeof(glm::vec2)));
-
-		//	// bind 0 for safety
-		//	glBindVertexArray(0);
-		//	glBindBuffer(GL_ARRAY_BUFFER, 0);
-		//	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
-		//	// set chunk material
-		//	chunk.materialID = loadedChunk.mesh.material_ids.empty() ? -1 : loadedChunk.mesh.material_ids[0];
-
-		//	//meshChunks.push_back(chunk);
-		//	meshChunks.emplace_back(std::move(chunk));
-		//}
-
-		//// Apply the loaded and copied mesh to the mesh
-		//a_mesh.Initialise(meshChunks, materials);
+		// Apply the loaded and copied mesh to the mesh
+		a_mesh.Initialise(meshChunks, materials);
 
 		// Successful
 		return true;
