@@ -36,7 +36,7 @@ private:
 	Mesh quadMesh;
 	glm::mat4 quadTransform;
 
-	aie::ShaderProgram phongShader;
+	aie::ShaderProgram phongTexShader;
 	Mesh soulSpear;
 	glm::mat4 modelTransform;
 
@@ -55,5 +55,15 @@ private:
 	Mesh fullScreenQuad;
 
 	aie::ShaderProgram postShader;
+
+	aie::ShaderProgram blurShader;
+
+	RenderTarget blurTarget;
+
+	float lightDirection;
+
+	aie::ShaderProgram phongShader;
+	Mesh dragon;
+	glm::mat4 dragonTransform;
 };
 

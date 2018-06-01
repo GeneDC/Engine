@@ -165,8 +165,13 @@
     <ClInclude Include="Application3D.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\bin\shaders\gaussianBlur.frag" />
+    <None Include="..\bin\shaders\PBR.frag" />
+    <None Include="..\bin\shaders\PBR.vert" />
     <None Include="..\bin\shaders\phong.frag" />
     <None Include="..\bin\shaders\phong.vert" />
+    <None Include="..\bin\shaders\phongTex.frag" />
+    <None Include="..\bin\shaders\phongTex.vert" />
     <None Include="..\bin\shaders\simplePost.frag" />
     <None Include="..\bin\shaders\simplePost.vert" />
     <None Include="..\bin\shaders\simpleTexture.frag" />

@@ -92,7 +92,8 @@ bool Application::Run(const char * title, int a_width, int a_height)
 		prevTime = currTime;
 
 		// Set the clear colour
-		glClearColor(0, 0.1f, 0.1f, 1.0f);
+		//glClearColor(0, 0.1f, 0.1f, 1.0f);
+		glClearColor(0, 0, 0, 1.0f);
 		// Clear the screen
 		ClearScreen();
 		

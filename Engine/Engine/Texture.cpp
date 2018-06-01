@@ -1,7 +1,6 @@
 #include "Texture.h"
 
-// Make sure you allways include gl core first
-#include <gl_core_4_4.h>
+//#include <gl_core_4_4.h>
 
 #define STB_IMAGE_IMPLEMENTATION
 #pragma warning(push)
@@ -69,13 +68,13 @@ bool Texture::Load(const char * filename, Texture & texture)
 }
 
 Texture Texture::Create(const unsigned int & a_width, const unsigned int a_height,
-	const Format a_format, const unsigned char * pixels)
+	const Format a_baseFormat, const unsigned char * pixels)
 {
 	Texture texture;
 
 	texture.width = a_width;
 	texture.height = a_height;
-	texture.format = a_format;
+	texture.format = a_baseFormat;
 	texture.loadedPixels = new unsigned char[a_width * a_height];
 	if (pixels != nullptr)
 		for (size_t i = 0; i < a_width * a_height; i++)
@@ -91,22 +90,34 @@ Texture Texture::Create(const unsigned int & a_width, const unsigned int a_heigh
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
+	// Use switch to make sure the Sized internal format is correct
 	switch (texture.format)
 	{
-	case RED:
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, texture.width, texture.height, 0, GL_RED, GL_UNSIGNED_BYTE, pixels);
+		// 1 Channel internal format
+	case Texture::Format::RED:
+	case Texture::Format::R16F:
+		glTexImage2D(GL_TEXTURE_2D, 0, texture.format, texture.width, texture.height, 0, GL_RED, GL_UNSIGNED_BYTE, pixels);
 		break;
-	case RG:
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RG, texture.width, texture.height, 0, GL_RG, GL_UNSIGNED_BYTE, pixels);
+		// 2 Channel internal format
+	case Texture::Format::RG:
+		glTexImage2D(GL_TEXTURE_2D, 0, texture.format, texture.width, texture.height, 0, GL_RG, GL_UNSIGNED_BYTE, pixels);
 		break;
-	case RGB:
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, texture.width, texture.height, 0, GL_RGB, GL_UNSIGNED_BYTE, pixels);
+		// 3 Channel internal format
+	case Texture::Format::RGB:
+	case Texture::Format::RGB16F:
+	case Texture::Format::RGB32F:
+		glTexImage2D(GL_TEXTURE_2D, 0, texture.format, texture.width, texture.height, 0, GL_RGB, GL_UNSIGNED_BYTE, pixels);
 		break;
-	case RGBA:
+		// 4 Channel internal format
+	case Texture::Format::RGBA:
+	case Texture::Format::RGBA16F:
+	case Texture::Format::RGBA32F:
+		glTexImage2D(GL_TEXTURE_2D, 0, texture.format, texture.width, texture.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+		break;
 	default:
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texture.width, texture.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
 		break;
-	};
+	}
+
 
 	glBindTexture(GL_TEXTURE_2D, 0);
 

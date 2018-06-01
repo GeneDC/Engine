@@ -13,7 +13,7 @@ RenderTarget::~RenderTarget()
 	}
 }
 
-bool RenderTarget::Create(const unsigned int a_targetCount, const unsigned int a_width, const unsigned int a_height)
+bool RenderTarget::Create(const unsigned int a_targetCount, const unsigned int a_width, const unsigned int a_height, Texture::Format a_texFormat/* = Texture::Format::RGBA*/)
 {
 	// Make sure that the values are not 0
 	assert(!(a_targetCount == 0 || a_width == 0 || a_height == 0));
@@ -35,7 +35,7 @@ bool RenderTarget::Create(const unsigned int a_targetCount, const unsigned int a
 
 		for (size_t i = 0; i < targetCount; i++)
 		{
-			targets[i] = Texture::Create(width, height, Texture::Format::RGBA);
+			targets[i] = Texture::Create(width, height, a_texFormat);
 
 			drawBuffers.push_back((GLenum)(GL_COLOR_ATTACHMENT0 + i));
 

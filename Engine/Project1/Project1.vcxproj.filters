@@ -31,12 +31,6 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\bin\shaders\phong.frag">
-      <Filter>Shaders</Filter>
-    </None>
-    <None Include="..\bin\shaders\phong.vert">
-      <Filter>Shaders</Filter>
-    </None>
     <None Include="..\bin\shaders\simpleTexture.frag">
       <Filter>Shaders</Filter>
     </None>
@@ -47,6 +41,27 @@
       <Filter>Shaders</Filter>
     </None>
     <None Include="..\bin\shaders\simplePost.vert">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\bin\shaders\gaussianBlur.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\bin\shaders\PBR.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\bin\shaders\PBR.vert">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\bin\shaders\phongTex.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\bin\shaders\phongTex.vert">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\bin\shaders\phong.frag">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="..\bin\shaders\phong.vert">
       <Filter>Shaders</Filter>
     </None>
   </ItemGroup>

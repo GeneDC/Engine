@@ -9,7 +9,7 @@ public:
 
 	// Must be called before this RenderTarget can be used
 	// Sets up everything, returns false on failure
-	bool Create(const unsigned int a_targetCount, const unsigned int a_width, const unsigned int a_height);
+	bool Create(const unsigned int a_targetCount, const unsigned int a_width, const unsigned int a_height, Texture::Format a_texFormat = Texture::Format::RGBA);
 
 	void Bind();
 	void Unbind();
@@ -34,4 +34,3 @@ private:
 	unsigned int targetCount;
 	Texture* targets;
 };
-
