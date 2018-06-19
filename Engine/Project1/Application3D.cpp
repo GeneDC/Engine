@@ -61,7 +61,7 @@ bool Application3D::Startup()
 
 	// Make sure the obj loaded correctly
 	assert(Loader::LoadOBJ(soulSpear, "./assets/soulspear/soulspear.obj") == true);
-	assert(Loader::LoadOBJ(rock, "./assets/Rock_6/Rock_6.OBJ") == true);
+	//assert(Loader::LoadOBJ(rock, "./assets/Rock_6/Rock_6.OBJ") == true);
 	assert(Loader::LoadOBJ(dragon, "./assets/stanford/Dragon.obj") == true);
 
 	quadMesh.InitialiseQuad();
@@ -193,6 +193,7 @@ void Application3D::Update(const float & a_deltaTime)
 
 	// rotate light
 	light.direction = glm::normalize(glm::vec3(glm::cos(lightDirection), glm::sin(lightDirection), 0));
+	light2.direction = glm::normalize(glm::vec3(glm::cos(lightDirection2), glm::sin(lightDirection2), 0));
 
 	// Close the app if esc is pressed
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
@@ -216,6 +217,7 @@ void Application3D::Draw()
 	phongTexShader.bindUniform("Id", light.diffuse);
 	phongTexShader.bindUniform("Is", light.specular);
 	phongTexShader.bindUniform("LightDirection", light.direction);
+	phongTexShader.bindUniform("LightDirection2", light2.direction);
 	// Bind the camera position
 	phongTexShader.bindUniform("cameraPosition", glm::vec3(camera.GetPosition()));
 
@@ -258,12 +260,13 @@ void Application3D::Draw()
 	phongShader.bindUniform("Id", light.diffuse);
 	phongShader.bindUniform("Is", light.specular);
 	phongShader.bindUniform("LightDirection", light.direction);
+	phongShader.bindUniform("LightDirection2", light2.direction);
 	// Bind the camera position
 	phongShader.bindUniform("cameraPosition", glm::vec3(camera.GetPosition()));
 
 	// Bind the transform
 	pvm = camera.GetProjectionMatrix() * camera.GetViewMatrix() * dragonTransform;
-	phongTexShader.bindUniform("ProjectionViewModel", pvm);
+	phongShader.bindUniform("ProjectionViewModel", pvm);
 
 	dragon.Draw();
 
@@ -344,7 +347,7 @@ void Application3D::Draw()
 	if (blur)
 		fullScreenQuad.GetMaterials()[0].specularTexture = blurTarget.GetTarget(1);
 	else
-		fullScreenQuad.GetMaterials()[0].specularTexture = renderTarget.GetTarget(target);
+		fullScreenQuad.GetMaterials()[0].specularTexture = Texture();
 	//fullScreenQuad.GetMaterials()[0].diffuseTexture = soulSpear.GetMaterials()[0].diffuseTexture;
 	//renderTarget.GetTarget(0).Bind(0);
 	fullScreenQuad.Draw();
@@ -359,6 +362,7 @@ void Application3D::Draw()
 	if (amount > 8) amount = 8;
 	if (amount < 1) amount = 1;
 	ImGui::SliderFloat("Light Direction", &lightDirection, 0, glm::pi<float>() * 2);
+	ImGui::SliderFloat("Light 2 Direction", &lightDirection2, 0, glm::pi<float>() * 2);
 	ImGui::Checkbox("Use Bloom", &blur);
 	ImGui::ColorEdit3("Dragon colour", &dragonColour[0]);
 	////auto tex = soulSpear.GetMaterials()[0].diffuseTexture.GetHandle();

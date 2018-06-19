@@ -48,7 +48,7 @@ private:
 		glm::vec3 diffuse;
 		glm::vec3 specular;
 	};
-	Light light;	glm::vec3 ambientLight;
+	Light light;	Light light2;	glm::vec3 ambientLight;
 
 	RenderTarget renderTarget;
 
@@ -61,6 +61,7 @@ private:
 	RenderTarget blurTarget;
 
 	float lightDirection;
+	float lightDirection2;
 
 	aie::ShaderProgram phongShader;
 	Mesh dragon;
