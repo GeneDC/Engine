@@ -33,6 +33,9 @@ bool Application3D::Startup()
 	// Create gizmos
 	Gizmos::create(30000, 30000, 30000, 30000);
 
+	lightDirection = 5.2f;
+	lightDirection2 = 2.5f;
+
 	camera.SetPos({ 0, 2, 10, 1 });
 
 	float aspectRatio = (float)width / (float)height;
@@ -193,7 +196,7 @@ void Application3D::Update(const float & a_deltaTime)
 
 	// rotate light
 	light.direction = glm::normalize(glm::vec3(glm::cos(lightDirection), glm::sin(lightDirection), 0));
-	light2.direction = glm::normalize(glm::vec3(glm::cos(lightDirection2), glm::sin(lightDirection2), 0));
+	light2.direction = glm::normalize(glm::vec3(0, glm::sin(lightDirection2), glm::cos(lightDirection2)));
 
 	// Close the app if esc is pressed
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
@@ -335,9 +338,9 @@ void Application3D::Draw()
 	// Start post processing
 	// Bind post shader
 	postShader.bind();
-	static float exposure = 0.5f;
+	static float exposure = 10.0f;
 	postShader.bindUniform("exposure", exposure);
-	static float gamma = 1.5f;
+	static float gamma = 0.5f;
 	postShader.bindUniform("gamma", gamma);
 
 	static int target = 0;
@@ -352,8 +355,9 @@ void Application3D::Draw()
 	//renderTarget.GetTarget(0).Bind(0);
 	fullScreenQuad.Draw();
 
-	ImGui::Begin("Post");
-	ImGui::SliderFloat("Exposure", &exposure, 0.01f, 10.0f);
+	ImGui::Begin("Settings");
+	ImGui::Text("Use W, A, S, D, Left Shift, and Space to move the camera");
+	ImGui::SliderFloat("Exposure", &exposure, 0.01f, 20.0f);
 	ImGui::SliderFloat("Gamma", &gamma, 0.4f, 3.0f);
 	ImGui::InputInt("Render Target", &target, 1, 1);
 	if (target > 1) target = 1;
